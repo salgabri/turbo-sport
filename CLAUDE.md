@@ -25,10 +25,24 @@ layout + full multicore parallelism + no database in the simulation hot path.
   system scheduling.
 - **Parallelism:** `rayon` for embarrassingly-parallel match simulation (matches
   within a matchday are independent of one another).
+- **Shared scope:** the sports sharing `sim-core` are **same-genre management sims**
+  (football, cycling, …), not different game genres. `sim-core` is therefore a *thick*
+  core: lifecycle, economy, transfer/contract market, AI, calendar all live there. The
+  sport crates carry only sport-specific simulation.
+- **Determinism:** the simulation is **deterministic** — same save + same seed + same
+  player input reproduces the same result, every run. Outcomes are still
+  RNG-driven and unpredictable *to the player*; determinism and unpredictability are
+  not in tension. The world holds a master seed; each match derives its own RNG stream
+  (`seed = hash(world_seed, season, matchday, match_id)`) with **no shared mutable RNG
+  across the `rayon` par_iter**, so thread scheduling can never affect results.
 - **Persistence:** the in-memory ECS world is the source of truth during play. Saves
-  serialized to disk via `rkyv` (zero-copy load) or `bincode`. The save format **must**
-  carry a version header from the first commit — save migration across patches is a
-  hard requirement, not a later concern.
+  go through a `SaveCodec` trait; the chosen codec is **`bincode`** (serde-based, so
+  schema migration is the normal `#[serde(default)]` / version-tag path). `rkyv`
+  (zero-copy load) stays behind the same trait as a deferred option, taken only if
+  load time ever becomes a real bottleneck — its zero-copy format makes save migration
+  far harder, which conflicts with the migration requirement below. The save format
+  **must** carry a version header from the first commit — save migration across patches
+  is a hard requirement, not a later concern.
 - **Optional on-disk store:** `redb` (pure-Rust embedded KV) if/when historical data
   outgrows RAM. **Not** SQLite — stay in-process and out of the hot path.
 - **Target:** standalone desktop app, Windows primary, cross-platform via the
@@ -78,6 +92,9 @@ a sport crate or on any UI crate.
    fully first. Extract shared abstractions only once a second sport reveals where they
    actually belong. Premature generalization here produces the wrong traits.
 5. **Versioned saves from day one.**
+6. **Deterministic engine.** No accidental nondeterminism. Per-match seeded RNG, no
+   shared mutable RNG across parallel work. A result that drifts because threads were
+   scheduled differently is a bug, not "realism."
 
 ## Build order (sequential — do not jump ahead)
 
@@ -88,7 +105,8 @@ a sport crate or on any UI crate.
 4. Economy basics (finances, wages).
 5. `sports/football`: the match engine implementing the core traits, parallelized
    with `rayon`.
-6. Persistence: versioned save/load via `rkyv` / `bincode`.
+6. Persistence: versioned save/load via a `SaveCodec` trait (`bincode` first; `rkyv`
+   deferred behind the same trait).
 7. `sports/cycling`: second sport — use it to validate and refactor the trait
    boundaries.
 8. `app/`: UI shell (after the UI decision).

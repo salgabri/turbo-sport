@@ -80,9 +80,52 @@ This is the single biggest lever over FM — and the reason the standalone-deskt
 matters: on a server you would ration cores across many users; on the desktop, one
 player's simulation gets all of them.
 
+A caveat on framing: parallel matches are the *easy* CPU win. A large share of a
+management sim's per-tick cost is the daily grind — AI squad/transfer/tactics decisions
+across thousands of clubs, training, regen, news. That work parallelizes too (it is an
+ECS pass over components), but the performance story is "parallelize the whole daily
+tick," not "parallelize match day alone." Do not assume the match engine is the only,
+or even the largest, time sink.
+
+One implementation hazard: `bevy_ecs` has its own parallel system scheduler and `rayon`
+has its own thread pool. Nesting a `rayon` `par_iter` *inside* a `bevy_ecs` system can
+oversubscribe cores (two pools fighting), which is worse than serial. Drive matchday
+simulation as a deliberate parallel pass with one understood thread-pool model — either
+outside the ECS schedule or on a shared/configured pool — rather than naively nesting.
+
+## Determinism
+
+The simulation is **deterministic**: the same save + the same seed + the same player
+input reproduces the same result, every run. This is an *engine* property and it is a
+hard requirement, settled before the match engine is written (retrofitting it means
+rewriting the engine).
+
+Determinism is **not** the opposite of unpredictability. Outcomes are RNG-driven and
+genuinely surprising *to the player* — the engine just reproduces that surprise exactly
+given the seed (the same way reloading a save in FM replays the same result). "Realistic
+unpredictable simulation" and "deterministic engine" are both true at once and there is
+no trade-off between them.
+
+What must be eliminated is *accidental* nondeterminism — a result that drifts because
+`rayon` happened to schedule threads differently this run. That is not realism; it is a
+bug that destroys reproducible bug reports, debuggability, and any future online/shared-
+league mode. The mechanism:
+
+- The world holds a master seed.
+- Each match derives its own RNG stream:
+  `seed = hash(world_seed, season, matchday, match_id)`.
+- No shared mutable RNG across the `rayon` par_iter — each match owns its stream — so
+  execution order cannot influence any result.
+
 ## The "shared greatness" framework
 
 The hardest design problem here, and the one most likely to be done wrong if rushed.
+
+Scope is settled: the things sharing `sim-core` are **same-genre management sims**
+(football, cycling, …), not different game genres. That justifies a *thick* core —
+lifecycle, economy, transfer/contract market, AI, calendar all shared — rather than the
+thin ECS-only core you'd get if the targets were unrelated genres. What is **not**
+settled is the exact trait surface; see the methodology note below.
 
 Structure: a Cargo workspace where `sim-core` is sport-agnostic and defines **traits**
 each sport must implement. Shared systems (lifecycle, economy, transfer market, AI)
@@ -128,14 +171,26 @@ that cycling and football are never forced into the same mold.
 The in-memory ECS world is the source of truth during play. The world *is* the game
 state.
 
-Saves: serialize with `rkyv` (zero-copy deserialization — memory-map a save and access
-it without parsing; dramatically faster for large saves) or `bincode` (simpler, slower
-for big saves).
+Saves go through a `SaveCodec` trait so the concrete format is swappable. The chosen
+codec is **`bincode`**, and the choice is deliberate against the migration requirement
+below:
+
+- `bincode` decodes through `serde` into live structs, so schema migration is the
+  ordinary path — `#[serde(default)]` for new fields, a version tag plus a transform
+  function for restructures. Well-trodden and cheap.
+- `rkyv`'s win is *load time*: zero-copy deserialization memory-maps a save and reads
+  it without parsing. But the archived bytes **are** the memory layout, so every schema
+  change breaks old archives and you migrate against raw archived types — brutal across
+  many patches × many seasons of player saves.
+
+At a few hundred MB the world is **sim-bound, not load-bound**, so `bincode`'s load
+cost is a non-issue and `rkyv`'s migration tax buys nothing. `rkyv` stays behind the
+`SaveCodec` trait as a deferred option, taken only if load time ever measurably hurts.
 
 **Save versioning is non-negotiable from the first commit.** A player's multi-season
 save must survive future patches; schema migration of save files is a recurring,
-unavoidable desktop-game problem. Put a version header in the format on day one and
-design with migration in mind from the start.
+unavoidable desktop-game problem. Put a version header in the byte stream on day one
+(independent of which codec is active) and design with migration in mind from the start.
 
 If historical data (e.g. full match history) ever outgrows RAM, add `redb` — a
 pure-Rust embedded KV store — to keep it on disk while staying in-process and out of
