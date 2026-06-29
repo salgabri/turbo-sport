@@ -2,17 +2,15 @@
 //! pipeline.
 //!
 //! `gather_lineups` reads the ECS world single-threaded into plain data; `simulate_matchday`
-//! runs the pure engine across cores with `rayon`. Writing results back into the world
-//! (standings, condition, injuries) is single-threaded and belongs to later steps. The
-//! split is what lets the parallel section stay lock-free and deterministic.
+//! runs the pure engine across cores via `sim_core::seeded_parallel_map`, which owns the
+//! determinism contract (per-fixture seeding, no shared RNG). Writing results back into the
+//! world (standings, condition, injuries) is single-threaded and belongs to later steps.
 
 use crate::attributes::{Footballer, TeamId};
 use crate::engine::{simulate_match, Lineup, MatchResult};
 use bevy_ecs::prelude::*;
-use rand::SeedableRng;
 use rand_pcg::Pcg64Mcg;
-use rayon::prelude::*;
-use sim_core::derive_seed;
+use sim_core::seeded_parallel_map;
 use std::collections::BTreeMap;
 
 /// A fixture, fully resolved to its two lineups so simulating it needs no ECS access.
@@ -43,29 +41,21 @@ pub fn gather_lineups(world: &mut World) -> BTreeMap<u32, Lineup> {
         .collect()
 }
 
-/// Seed for one fixture: the world seed folded with stable coordinates. Identical across
-/// runs and independent of `rayon`'s scheduling.
-fn fixture_seed(world_seed: u64, season: u32, matchday: u32, index: usize) -> u64 {
-    derive_seed(world_seed, &[u64::from(season), u64::from(matchday), index as u64])
-}
-
-/// Simulate a whole matchday in parallel. Because every fixture owns an independently
-/// seeded RNG and the engine is pure, the result vector is byte-for-byte identical on
-/// every run, on any number of cores.
+/// Simulate a whole matchday in parallel. The `[season, matchday]` coordinates name the
+/// stream group; the shared helper seeds each fixture so the result is identical on every
+/// run, on any number of cores.
 pub fn simulate_matchday(
     fixtures: &[Fixture],
     world_seed: u64,
     season: u32,
     matchday: u32,
 ) -> Vec<MatchResult> {
-    fixtures
-        .par_iter()
-        .enumerate()
-        .map(|(i, fx)| {
-            let mut rng = Pcg64Mcg::seed_from_u64(fixture_seed(world_seed, season, matchday, i));
-            simulate_match(&fx.home, &fx.away, &mut rng)
-        })
-        .collect()
+    seeded_parallel_map::<Pcg64Mcg, _, _, _>(
+        fixtures,
+        world_seed,
+        &[u64::from(season), u64::from(matchday)],
+        |fx, rng| simulate_match(&fx.home, &fx.away, rng),
+    )
 }
 
 #[cfg(test)]
@@ -76,35 +66,16 @@ mod tests {
         Lineup::new(base, base, base, base)
     }
 
-    /// Single-threaded reference using the same per-fixture seeds.
-    fn simulate_serial(
-        fixtures: &[Fixture],
-        world_seed: u64,
-        season: u32,
-        matchday: u32,
-    ) -> Vec<MatchResult> {
-        fixtures
-            .iter()
-            .enumerate()
-            .map(|(i, fx)| {
-                let mut rng = Pcg64Mcg::seed_from_u64(fixture_seed(world_seed, season, matchday, i));
-                simulate_match(&fx.home, &fx.away, &mut rng)
-            })
-            .collect()
-    }
-
     #[test]
-    fn parallel_matches_serial_and_is_repeatable() {
+    fn matchday_is_deterministic() {
+        // Determinism across cores is guaranteed by the shared helper (tested in
+        // sim-core); here we just confirm a matchday is reproducible end to end.
         let fixtures: Vec<Fixture> = (0..32)
-            .map(|i| Fixture { home: lineup(40.0 + i as f64), away: lineup(70.0 - i as f64) })
+            .map(|i| Fixture { home: lineup(40.0 + f64::from(i)), away: lineup(70.0 - f64::from(i)) })
             .collect();
-
-        let par = simulate_matchday(&fixtures, 0xABCD, 2025, 7);
-        let serial = simulate_serial(&fixtures, 0xABCD, 2025, 7);
-        let par_again = simulate_matchday(&fixtures, 0xABCD, 2025, 7);
-
-        assert_eq!(par, serial, "parallel result must equal the serial reference");
-        assert_eq!(par, par_again, "matchday must be reproducible run-to-run");
+        let a = simulate_matchday(&fixtures, 0xABCD, 2025, 7);
+        let b = simulate_matchday(&fixtures, 0xABCD, 2025, 7);
+        assert_eq!(a, b);
     }
 
     #[test]

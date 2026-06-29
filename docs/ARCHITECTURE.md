@@ -166,6 +166,34 @@ exist reliably produces the wrong abstraction.
 The central tension to hold throughout: rich enough to share real logic, generic enough
 that cycling and football are never forced into the same mold.
 
+### Harvest outcome (after football + cycling exist)
+
+Both sports are now built, and the friction the methodology predicted showed up exactly
+where it mattered — so the harvest is **deliberately narrow**:
+
+- **Extracted into `sim-core` (`sim::seeded_parallel_map`):** the one genuine duplication
+  was the deterministic-parallel pattern — run a pure per-item simulation across cores
+  with `rayon`, each item driven by an independently *seeded* RNG. That pattern encodes
+  the determinism contract (seed = world seed + stable coordinates + item index, never
+  shared across threads), which is subtle enough to deserve a single audited home. It is
+  generic over the RNG engine, so sports still choose `rand_pcg`; `sim-core` only takes a
+  `rand_core` trait dependency plus `rayon`.
+- **Explicitly NOT extracted:** the `MatchEngine` / `CompetitionFormat` traits sketched
+  above. Cycling falsified them. The illustrative `MatchEngine { simulate(home, away) }`
+  is football-shaped: a cycling stage has no home/away — it is N riders → N finishing
+  times, accumulated across stages into a general classification, not a head-to-head
+  result with a points table. Football aggregates eleven players into a lineup; cycling's
+  unit of competition is the individual. Had this trait been locked up front (the
+  "framework first" instinct), cycling would have broken it. So the sports keep their own
+  concrete engines and standings; the engine/competition trait surface stays **unextracted
+  by design** until a real shared shape appears (a third sport, or a feature both sports
+  genuinely share).
+
+The lesson, recorded: the right shared layer here was cross-cutting *infrastructure*, not
+a domain *engine* trait. The thick `sim-core` (time, lifecycle, economy, persistence,
+deterministic parallelism) carries the weight; the sport-specific simulation stays in the
+sport crates.
+
 ## Persistence
 
 The in-memory ECS world is the source of truth during play. The world *is* the game

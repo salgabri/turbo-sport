@@ -19,6 +19,7 @@ pub mod lifecycle;
 pub mod persistence;
 pub mod rng;
 pub mod schedule;
+pub mod sim;
 pub mod time;
 
 pub use economy::{Balance, Money, WeeklyIncome};
@@ -31,4 +32,5 @@ pub use persistence::{
 };
 pub use rng::{derive_seed, SimSeed};
 pub use schedule::build_daily_schedule;
+pub use sim::seeded_parallel_map;
 pub use time::{advance_time, Date, SimClock};

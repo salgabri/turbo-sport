@@ -1,17 +1,16 @@
 //! The stage engine: a **pure**, seeded simulation of one stage that produces a finishing
 //! time per rider.
 //!
-//! Same purity/determinism discipline as football's match engine (no ECS, no shared
-//! state, seeded RNG) — but a deliberately different *shape*: the input is N riders (not
-//! two lineups), and the output is a time per rider (not a scoreline). That structural
-//! mismatch is exactly what the trait-harvest step needs to see.
+//! Same determinism discipline as football's match engine, via the same shared helper
+//! (`sim_core::seeded_parallel_map`) — but a deliberately different *shape*: the input is N
+//! riders (not two lineups) and the output is a time per rider (not a scoreline). That
+//! structural mismatch is why the shared layer is the parallel-seeding helper, not a
+//! head-to-head `MatchEngine` trait.
 
 use crate::attributes::{Rider, StageType};
 use rand::Rng;
-use rand::SeedableRng;
 use rand_pcg::Pcg64Mcg;
-use rayon::prelude::*;
-use sim_core::derive_seed;
+use sim_core::seeded_parallel_map;
 
 /// One rider's result in a stage: their index in the start list and elapsed seconds.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -40,16 +39,17 @@ fn performance(r: &Rider, stage: StageType) -> f64 {
 /// rider finishes up to `spread` seconds faster; `noise` is the per-stage randomness.
 fn stage_params(stage: StageType) -> (f64, f64, f64) {
     match stage {
-        StageType::Flat => (14_400.0, 600.0, 90.0),     // ~4h, bunch finishes (small gaps)
-        StageType::Hilly => (14_400.0, 900.0, 120.0),   // ~4h
+        StageType::Flat => (14_400.0, 600.0, 90.0),       // ~4h, bunch finishes (small gaps)
+        StageType::Hilly => (14_400.0, 900.0, 120.0),     // ~4h
         StageType::Mountain => (18_000.0, 1_500.0, 150.0), // ~5h, big GC gaps
         StageType::TimeTrial => (3_600.0, 1_200.0, 60.0),  // ~1h, ability dominates
     }
 }
 
-/// Simulate one stage for the whole start list, in parallel. Each rider's RNG is seeded
-/// from the world seed plus `(race_id, stage_index, rider_index)`, so the times are
-/// identical regardless of how `rayon` schedules the riders.
+/// Simulate one stage for the whole start list, in parallel. The `[race_id, stage_index]`
+/// coordinates name the stream group; the shared helper seeds each rider so the times are
+/// identical regardless of scheduling. Results come back in start-list order, so the index
+/// is the rider's position in `riders`.
 pub fn simulate_stage(
     riders: &[Rider],
     stage: StageType,
@@ -58,16 +58,16 @@ pub fn simulate_stage(
     stage_index: u32,
 ) -> Vec<StageTime> {
     let (base, spread, noise) = stage_params(stage);
-    riders
-        .par_iter()
+    let times = seeded_parallel_map::<Pcg64Mcg, _, _, _>(
+        riders,
+        world_seed,
+        &[u64::from(race_id), u64::from(stage_index)],
+        |r, rng| base - (performance(r, stage) / 100.0) * spread + rng.gen_range(-noise..noise),
+    );
+    times
+        .into_iter()
         .enumerate()
-        .map(|(i, r)| {
-            let seed =
-                derive_seed(world_seed, &[u64::from(race_id), u64::from(stage_index), i as u64]);
-            let mut rng = Pcg64Mcg::seed_from_u64(seed);
-            let secs = base - (performance(r, stage) / 100.0) * spread + rng.gen_range(-noise..noise);
-            StageTime { rider_index: i, secs }
-        })
+        .map(|(rider_index, secs)| StageTime { rider_index, secs })
         .collect()
 }
 
@@ -79,37 +79,12 @@ mod tests {
         Rider { climbing, sprinting, time_trial, endurance }
     }
 
-    fn simulate_serial(
-        riders: &[Rider],
-        stage: StageType,
-        world_seed: u64,
-        race_id: u32,
-        stage_index: u32,
-    ) -> Vec<StageTime> {
-        let (base, spread, noise) = stage_params(stage);
-        riders
-            .iter()
-            .enumerate()
-            .map(|(i, r)| {
-                let seed =
-                    derive_seed(world_seed, &[u64::from(race_id), u64::from(stage_index), i as u64]);
-                let mut rng = Pcg64Mcg::seed_from_u64(seed);
-                let secs =
-                    base - (performance(r, stage) / 100.0) * spread + rng.gen_range(-noise..noise);
-                StageTime { rider_index: i, secs }
-            })
-            .collect()
-    }
-
     #[test]
-    fn parallel_matches_serial_and_repeats() {
-        let riders: Vec<Rider> =
-            (0..64).map(|i| rider(40 + (i % 50) as u8, 50, 50, 60)).collect();
-        let par = simulate_stage(&riders, StageType::Mountain, 0xC0FFEE, 1, 3);
-        let serial = simulate_serial(&riders, StageType::Mountain, 0xC0FFEE, 1, 3);
-        let again = simulate_stage(&riders, StageType::Mountain, 0xC0FFEE, 1, 3);
-        assert_eq!(par, serial);
-        assert_eq!(par, again);
+    fn stage_is_deterministic() {
+        let riders: Vec<Rider> = (0..64).map(|i| rider(40 + (i % 50) as u8, 50, 50, 60)).collect();
+        let a = simulate_stage(&riders, StageType::Mountain, 0xC0FFEE, 1, 3);
+        let b = simulate_stage(&riders, StageType::Mountain, 0xC0FFEE, 1, 3);
+        assert_eq!(a, b);
     }
 
     #[test]

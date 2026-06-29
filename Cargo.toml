@@ -18,6 +18,9 @@ license = "UNLICENSED"
 [workspace.dependencies]
 bevy_ecs = "0.16"
 rayon = "1"
+# Trait-only RNG seam (SeedableRng): lets sim-core's parallel helper be generic over the
+# RNG engine while the sports keep choosing the concrete generator (rand_pcg).
+rand_core = "0.6"
 serde = { version = "1", features = ["derive"] }
 # bincode 1.x: serde-based, so save migration is the ordinary serde path. Deliberately
 # not bincode 2.x or rkyv — see docs/ARCHITECTURE.md "Persistence".

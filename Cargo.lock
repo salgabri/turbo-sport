@@ -743,6 +743,9 @@ version = "0.1.0"
 dependencies = [
  "bevy_ecs",
  "bincode",
+ "rand_core",
+ "rand_pcg",
+ "rayon",
  "serde",
 ]
 

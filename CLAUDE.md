@@ -35,6 +35,14 @@ layout + full multicore parallelism + no database in the simulation hot path.
   not in tension. The world holds a master seed; each match derives its own RNG stream
   (`seed = hash(world_seed, season, matchday, match_id)`) with **no shared mutable RNG
   across the `rayon` par_iter**, so thread scheduling can never affect results.
+- **Shared trait surface (harvest outcome, post-cycling):** only
+  `sim_core::sim::seeded_parallel_map` was extracted — the deterministic-parallel
+  infrastructure. The `MatchEngine` / `CompetitionFormat` *domain* traits are
+  **intentionally NOT extracted**: cycling (N riders → times → GC) falsified the
+  football-shaped `simulate(home, away)`. Keep sport engines concrete until a real shared
+  shape appears. `sim-core` gained `rayon` + `rand_core` (trait only) for the helper; the
+  RNG engine (`rand_pcg`) stays a sport choice. See `docs/ARCHITECTURE.md` → "Harvest
+  outcome."
 - **Persistence:** the in-memory ECS world is the source of truth during play. Saves
   go through a `SaveCodec` trait; the chosen codec is **`bincode`** (serde-based, so
   schema migration is the normal `#[serde(default)]` / version-tag path). `rkyv`

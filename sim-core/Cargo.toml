@@ -9,6 +9,14 @@ description = "Sport-agnostic simulation engine: ECS world, time/calendar, lifec
 bevy_ecs.workspace = true
 serde.workspace = true
 bincode.workspace = true
+# Deterministic parallel simulation infrastructure shared by every sport (harvested in
+# step 7B). rand_core is the trait only; the concrete RNG engine stays a sport choice.
+rayon.workspace = true
+rand_core.workspace = true
+
+[dev-dependencies]
+# A concrete RNG to exercise the generic parallel helper in tests.
+rand_pcg.workspace = true
 
 [lints.clippy]
 # Keep the core honest; treat warnings seriously (CLAUDE.md conventions).
