@@ -1,0 +1,15 @@
+[package]
+name = "tennis"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "Tennis sport implementation: best-of-3 match engine, single-elimination bracket."
+
+[dependencies]
+sim-core = { path = "../../sim-core" }
+bevy_ecs.workspace = true
+rand.workspace = true
+rand_pcg.workspace = true
+
+[lints.clippy]
+all = "warn"

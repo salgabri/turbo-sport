@@ -7,7 +7,7 @@
 # build-order step. Adding them empty now would only invite premature abstraction.
 [workspace]
 resolver = "2"
-members = ["sim-core", "sports/football", "sports/cycling", "sports/basketball"]
+members = ["sim-core", "sports/football", "sports/cycling", "sports/basketball", "sports/tennis"]
 
 [workspace.package]
 edition = "2021"
