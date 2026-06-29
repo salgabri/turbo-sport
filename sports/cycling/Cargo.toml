@@ -1,0 +1,16 @@
+[package]
+name = "cycling"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "Cycling sport implementation: stage simulation, general classification."
+
+[dependencies]
+sim-core = { path = "../../sim-core" }
+bevy_ecs.workspace = true
+rayon.workspace = true
+rand.workspace = true
+rand_pcg.workspace = true
+
+[lints.clippy]
+all = "warn"
