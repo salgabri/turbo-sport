@@ -9,7 +9,7 @@
 //! deterministic age threshold, deliberately a placeholder for that.
 
 use crate::entity::{age_years, BirthDate, Condition, Contract, FreeAgent, Retired};
-use crate::time::{advance_time, SimClock};
+use crate::time::SimClock;
 use bevy_ecs::prelude::*;
 
 /// Age at which a person retires under the current placeholder rule. Will become a
@@ -64,22 +64,11 @@ pub fn age_and_retire(
     }
 }
 
-/// Assemble the standard one-day schedule: advance the clock, then run the lifecycle
-/// systems against the new date. `.chain()` fixes a deterministic execution order; one
-/// `schedule.run(&mut world)` simulates exactly one day. Later subsystems (economy,
-/// competitions) get ordered into this same schedule at their build steps.
-pub fn build_daily_schedule() -> Schedule {
-    let mut schedule = Schedule::default();
-    schedule.add_systems(
-        (advance_time, recover_condition, expire_contracts, age_and_retire).chain(),
-    );
-    schedule
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::entity::{Morale, PersonBundle};
+    use crate::schedule::build_daily_schedule;
     use crate::time::Date;
 
     /// Build a world starting on `start` with the daily schedule ready.

@@ -13,14 +13,18 @@
 //! What exists today is build-order step 2: a world that can advance simulated time
 //! from days to seasons.
 
+pub mod economy;
 pub mod entity;
 pub mod lifecycle;
 pub mod rng;
+pub mod schedule;
 pub mod time;
 
+pub use economy::{Balance, Money, WeeklyIncome};
 pub use entity::{
     age_years, BirthDate, Condition, Contract, FreeAgent, Morale, PersonBundle, Retired,
 };
-pub use lifecycle::{build_daily_schedule, RETIREMENT_AGE};
+pub use lifecycle::RETIREMENT_AGE;
 pub use rng::{derive_seed, SimSeed};
+pub use schedule::build_daily_schedule;
 pub use time::{advance_time, Date, SimClock};

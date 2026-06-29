@@ -10,11 +10,11 @@
 //! Run: `cargo run -p sim-core --example heartbeat --release`
 
 use bevy_ecs::prelude::*;
-use sim_core::{
-    build_daily_schedule, BirthDate, Condition, Contract, FreeAgent, Morale, Retired, SimClock,
-    SimSeed,
-};
 use sim_core::Date;
+use sim_core::{
+    build_daily_schedule, Balance, BirthDate, Condition, Contract, FreeAgent, Morale, Retired,
+    SimClock, SimSeed, WeeklyIncome,
+};
 
 fn main() {
     const PEOPLE: usize = 100_000;
@@ -24,8 +24,12 @@ fn main() {
     world.insert_resource(SimClock::starting_on(Date::new(2025, 7, 1)));
     world.insert_resource(SimSeed(0xC0FFEE));
 
-    // One club to own everyone's contract (clubs as full entities come later).
-    let club = world.spawn_empty().id();
+    // One club to own everyone's contract, with a balance and a flat weekly income.
+    // (A single club holding 100k players is obviously unrealistic — this is a stress
+    // demo of the payroll mechanic, not a league.)
+    let club = world
+        .spawn((Balance(50_000_000), WeeklyIncome(120_000_000)))
+        .id();
 
     // Spawn the population as packed component arrays — no per-person heap objects
     // (CLAUDE.md hard constraint #1). Ages 16..=40, contracts ending across the next
@@ -44,8 +48,9 @@ fn main() {
     }));
 
     let start = *world.resource::<SimClock>();
+    let opening_wage_bill: i64 = world.query::<&Contract>().iter(&world).map(|c| i64::from(c.wage)).sum();
     println!(
-        "spawned {PEOPLE} people; clock starts {} (season {}/{:02})",
+        "spawned {PEOPLE} people; clock starts {} (season {}/{:02}); opening weekly wage bill {opening_wage_bill}",
         start.date(),
         start.season_start_year(),
         (start.season_start_year() + 1) % 100,
@@ -73,8 +78,9 @@ fn main() {
         .count();
 
     let end = *world.resource::<SimClock>();
+    let balance = world.get::<Balance>(club).map_or(0, |b| b.0);
     println!(
-        "advanced {} days to {}: {free_agents} free agents, {retired} retired, {injured} injured",
+        "advanced {} days to {}: {free_agents} free agents, {retired} retired, {injured} injured; club balance {balance}",
         end.day_index(),
         end.date(),
     );
