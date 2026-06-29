@@ -65,6 +65,16 @@ pub struct FreeAgent;
 #[derive(Component, Clone, Copy, Debug)]
 pub struct Retired;
 
+/// A club's desired squad size. The transfer system signs free agents to clubs that are
+/// below this target.
+#[derive(Component, Clone, Copy, Debug)]
+pub struct SquadTarget(pub u32);
+
+/// A free agent's asking weekly wage, set when their contract expires (carried over from
+/// the old wage). The transfer system signs free agents whose demand a club can afford.
+#[derive(Component, Clone, Copy, Debug)]
+pub struct WageDemand(pub u32);
+
 /// The minimal set of components every simulated person shares. Sport crates spawn this
 /// alongside their own ability components; a [`Contract`] is added separately because a
 /// free agent is a person without one.

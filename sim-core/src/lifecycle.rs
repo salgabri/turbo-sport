@@ -8,7 +8,7 @@
 //! by events with derived RNG streams at later build steps. Today's retirement rule is a
 //! deterministic age threshold, deliberately a placeholder for that.
 
-use crate::entity::{age_years, BirthDate, Condition, Contract, FreeAgent, Retired};
+use crate::entity::{age_years, BirthDate, Condition, Contract, FreeAgent, Retired, WageDemand};
 use crate::time::SimClock;
 use bevy_ecs::prelude::*;
 
@@ -38,7 +38,13 @@ pub fn expire_contracts(clock: Res<SimClock>, mut commands: Commands, q: Query<(
     let today = clock.date();
     for (e, c) in &q {
         if today > c.until {
-            commands.entity(e).remove::<Contract>().insert(FreeAgent);
+            // Carry the old wage over as the free agent's asking price for the transfer
+            // market.
+            commands
+                .entity(e)
+                .remove::<Contract>()
+                .insert(FreeAgent)
+                .insert(WageDemand(c.wage));
         }
     }
 }

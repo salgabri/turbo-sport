@@ -22,11 +22,13 @@ pub mod rng;
 pub mod schedule;
 pub mod sim;
 pub mod time;
+pub mod transfers;
 
 pub use competition::{double_round_robin, schedule_weekly, single_round_robin};
 pub use economy::{Balance, Money, WeeklyIncome};
 pub use entity::{
     age_years, BirthDate, Condition, Contract, FreeAgent, Morale, PersonBundle, Retired,
+    SquadTarget, WageDemand,
 };
 pub use lifecycle::RETIREMENT_AGE;
 pub use persistence::{
@@ -36,3 +38,4 @@ pub use rng::{derive_seed, SimSeed};
 pub use schedule::build_daily_schedule;
 pub use sim::seeded_parallel_map;
 pub use time::{advance_time, Date, SimClock};
+pub use transfers::run_transfer_window;
