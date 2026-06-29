@@ -7,6 +7,8 @@ description = "Sport-agnostic simulation engine: ECS world, time/calendar, lifec
 
 [dependencies]
 bevy_ecs.workspace = true
+serde.workspace = true
+bincode.workspace = true
 
 [lints.clippy]
 # Keep the core honest; treat warnings seriously (CLAUDE.md conventions).

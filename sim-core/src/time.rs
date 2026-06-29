@@ -96,6 +96,13 @@ impl SimClock {
         Self { date, day_index: 0 }
     }
 
+    /// Reconstruct a clock from saved parts. Used by persistence on load: `day_index` is
+    /// the monotonic counter captured at save time, restored verbatim rather than
+    /// recomputed from `date`.
+    pub fn from_parts(date: Date, day_index: u64) -> Self {
+        Self { date, day_index }
+    }
+
     pub fn date(&self) -> Date {
         self.date
     }
