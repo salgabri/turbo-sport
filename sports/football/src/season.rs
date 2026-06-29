@@ -15,7 +15,7 @@
 
 use crate::matchday::{gather_lineups, simulate_matchday, Fixture};
 use bevy_ecs::prelude::*;
-use sim_core::{Date, SimClock};
+use sim_core::{double_round_robin, schedule_weekly, Date, SimClock};
 use std::collections::BTreeMap;
 
 /// One team's running record in the league table.
@@ -61,11 +61,11 @@ impl Season {
     /// Build a season: a double round-robin (everyone plays everyone home and away),
     /// one matchday per week starting on `start`. Requires an even number of teams.
     pub fn new(teams: Vec<u32>, start: Date, world_seed: u64, season_id: u32) -> Self {
-        assert!(teams.len() >= 2 && teams.len().is_multiple_of(2), "need an even team count >= 2");
-        let matchdays = double_round_robin(&teams)
+        // Round-robin scheduling is the shared, sport-agnostic piece (sim-core); the table
+        // rules below are football's own.
+        let matchdays = schedule_weekly(double_round_robin(&teams), start)
             .into_iter()
-            .enumerate()
-            .map(|(i, fixtures)| Matchday { date: start.add_days(i as u32 * 7), fixtures, played: false })
+            .map(|(date, fixtures)| Matchday { date, fixtures, played: false })
             .collect();
         let table = teams.iter().map(|&t| (t, TeamRecord::default())).collect();
         Season { teams, matchdays, next: 0, table, world_seed, season_id }
@@ -165,37 +165,6 @@ pub fn play_due_fixtures(world: &mut World) {
     });
 }
 
-/// Single round-robin via the circle method (each team plays each other once). Even N.
-fn single_round_robin(teams: &[u32]) -> Vec<Vec<(u32, u32)>> {
-    let n = teams.len();
-    let mut arr = teams.to_vec();
-    let mut rounds = Vec::with_capacity(n - 1);
-    for r in 0..(n - 1) {
-        let mut day = Vec::with_capacity(n / 2);
-        for i in 0..n / 2 {
-            let (a, b) = (arr[i], arr[n - 1 - i]);
-            // Alternate home/away by round so no team is always at home.
-            if r.is_multiple_of(2) {
-                day.push((a, b));
-            } else {
-                day.push((b, a));
-            }
-        }
-        rounds.push(day);
-        // Rotate all but the first entry (circle method).
-        arr[1..].rotate_right(1);
-    }
-    rounds
-}
-
-/// Double round-robin: the single schedule, then the same fixtures with venues swapped.
-fn double_round_robin(teams: &[u32]) -> Vec<Vec<(u32, u32)>> {
-    let first = single_round_robin(teams);
-    let second: Vec<Vec<(u32, u32)>> =
-        first.iter().map(|round| round.iter().map(|&(h, a)| (a, h)).collect()).collect();
-    first.into_iter().chain(second).collect()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -216,29 +185,6 @@ mod tests {
             }
         }
         world
-    }
-
-    #[test]
-    fn double_round_robin_has_every_pair_twice() {
-        let teams: Vec<u32> = (0..6).collect();
-        let rounds = double_round_robin(&teams);
-        assert_eq!(rounds.len(), 2 * (6 - 1)); // 10 matchdays
-
-        let mut games = std::collections::HashMap::<(u32, u32), u32>::new();
-        for round in &rounds {
-            assert_eq!(round.len(), 3); // 6 teams -> 3 games per round
-            for &(h, a) in round {
-                *games.entry((h, a)).or_default() += 1;
-            }
-        }
-        // Each ordered pairing (home, away) occurs exactly once across the season.
-        for &h in &teams {
-            for &a in &teams {
-                if h != a {
-                    assert_eq!(games.get(&(h, a)).copied().unwrap_or(0), 1, "{h} vs {a}");
-                }
-            }
-        }
     }
 
     #[test]
