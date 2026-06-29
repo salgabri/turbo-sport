@@ -7,7 +7,7 @@
 # build-order step. Adding them empty now would only invite premature abstraction.
 [workspace]
 resolver = "2"
-members = ["sim-core"]
+members = ["sim-core", "sports/football"]
 
 [workspace.package]
 edition = "2021"
@@ -17,6 +17,12 @@ license = "UNLICENSED"
 # Shared dependency versions live here so every crate pins the same revisions.
 [workspace.dependencies]
 bevy_ecs = "0.16"
+rayon = "1"
+# Pinned to the 0.8 line (with rand_pcg 0.3) for a stable, well-known API. Pcg is a
+# small, fast, statistically solid generator that seeds cleanly from a u64 — exactly
+# what the per-match deterministic streams need.
+rand = "0.8"
+rand_pcg = "0.3"
 
 # Build the workspace optimized-ish even in dev for the sim hot path; this is a
 # CPU-bound simulation, debug-speed ECS iteration is painfully slow to dogfood.

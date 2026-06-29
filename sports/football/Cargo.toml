@@ -1,0 +1,17 @@
+[package]
+name = "football"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "Football sport implementation: event-tick match engine, parallel matchdays."
+
+[dependencies]
+# Sport crates depend on sim-core; never the reverse (CLAUDE.md dependency direction).
+sim-core = { path = "../../sim-core" }
+bevy_ecs.workspace = true
+rayon.workspace = true
+rand.workspace = true
+rand_pcg.workspace = true
+
+[lints.clippy]
+all = "warn"
