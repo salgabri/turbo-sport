@@ -52,6 +52,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "basketball"
+version = "0.1.0"
+dependencies = [
+ "bevy_ecs",
+ "rand",
+ "rand_pcg",
+ "sim-core",
+]
+
+[[package]]
 name = "bevy_ecs"
 version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

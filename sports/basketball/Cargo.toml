@@ -1,0 +1,15 @@
+[package]
+name = "basketball"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "Basketball sport implementation: possession-based game engine, W/L league."
+
+[dependencies]
+sim-core = { path = "../../sim-core" }
+bevy_ecs.workspace = true
+rand.workspace = true
+rand_pcg.workspace = true
+
+[lints.clippy]
+all = "warn"
