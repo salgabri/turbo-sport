@@ -1,0 +1,27 @@
+# Cargo workspace root.
+#
+# Dependency direction (enforced by review, see CLAUDE.md): sport crates depend on
+# `sim-core`; `sim-core` never depends on a sport crate or any UI crate.
+#
+# `sports/*` and `app/` are intentionally NOT members yet — they get added at their
+# build-order step. Adding them empty now would only invite premature abstraction.
+[workspace]
+resolver = "2"
+members = ["sim-core"]
+
+[workspace.package]
+edition = "2021"
+version = "0.1.0"
+license = "UNLICENSED"
+
+# Shared dependency versions live here so every crate pins the same revisions.
+[workspace.dependencies]
+bevy_ecs = "0.16"
+
+# Build the workspace optimized-ish even in dev for the sim hot path; this is a
+# CPU-bound simulation, debug-speed ECS iteration is painfully slow to dogfood.
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3

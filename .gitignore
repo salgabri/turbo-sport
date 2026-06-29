@@ -1,0 +1,5 @@
+# Rust build output
+/target
+**/*.rs.bk
+
+# Cargo lock is committed for the eventual binary; nothing to ignore there yet.

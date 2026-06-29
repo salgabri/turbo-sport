@@ -1,0 +1,13 @@
+[package]
+name = "sim-core"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "Sport-agnostic simulation engine: ECS world, time/calendar, lifecycle, economy, persistence."
+
+[dependencies]
+bevy_ecs.workspace = true
+
+[lints.clippy]
+# Keep the core honest; treat warnings seriously (CLAUDE.md conventions).
+all = "warn"
