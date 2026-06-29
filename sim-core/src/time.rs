@@ -47,6 +47,17 @@ impl Date {
         self.day
     }
 
+    /// The date `days` days after this one. Walks the fixed calendar day by day; `days`
+    /// is expected to be modest (a season's worth at most), so the loop is fine.
+    #[must_use]
+    pub fn add_days(self, days: u32) -> Date {
+        let mut d = self;
+        for _ in 0..days {
+            d = d.succ();
+        }
+        d
+    }
+
     /// The next calendar day, rolling month and year over as needed.
     #[must_use]
     pub fn succ(self) -> Date {
