@@ -10,7 +10,7 @@ use crate::attributes::{Footballer, TeamId};
 use crate::engine::{simulate_match, Lineup, MatchResult};
 use bevy_ecs::prelude::*;
 use rand_pcg::Pcg64Mcg;
-use sim_core::seeded_parallel_map;
+use sim_core::{seeded_parallel_map, Retired};
 use std::collections::BTreeMap;
 
 /// A fixture, fully resolved to its two lineups so simulating it needs no ECS access.
@@ -24,7 +24,8 @@ pub struct Fixture {
 /// abilities. Ordered by team id (`BTreeMap`) for reproducible iteration.
 pub fn gather_lineups(world: &mut World) -> BTreeMap<u32, Lineup> {
     let mut acc: BTreeMap<u32, (f64, f64, f64, f64, u32)> = BTreeMap::new();
-    let mut q = world.query::<(&TeamId, &Footballer)>();
+    // Retired players keep their TeamId but are no longer available to play.
+    let mut q = world.query_filtered::<(&TeamId, &Footballer), Without<Retired>>();
     for (team, f) in q.iter(world) {
         let e = acc.entry(team.0).or_insert((0.0, 0.0, 0.0, 0.0, 0));
         e.0 += f64::from(f.attacking);

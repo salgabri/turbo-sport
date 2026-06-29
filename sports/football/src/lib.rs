@@ -9,11 +9,13 @@
 //! a rayon-parallel matchday runner with deterministic per-match seeding.
 
 pub mod attributes;
+pub mod career;
 pub mod engine;
 pub mod matchday;
 pub mod season;
 
 pub use attributes::{Footballer, TeamId};
+pub use career::regen_youth;
 pub use engine::{simulate_match, Chance, Lineup, MatchResult, MATCH_MINUTES};
 pub use matchday::{gather_lineups, simulate_matchday, Fixture};
 pub use season::{play_due_fixtures, Matchday, Season, TeamRecord};
