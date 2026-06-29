@@ -1,0 +1,7 @@
+# Normalize line endings: store everything LF in the repo. Pin source/text files to LF
+# in the working tree too, so Windows checkouts don't trigger CRLF conversion warnings.
+* text=auto eol=lf
+*.rs text eol=lf
+*.toml text eol=lf
+*.md text eol=lf
+Cargo.lock text eol=lf
