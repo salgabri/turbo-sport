@@ -12,6 +12,9 @@ bevy_ecs.workspace = true
 rayon.workspace = true
 rand.workspace = true
 rand_pcg.workspace = true
+# Starting-database (de)serialization to JSON.
+serde = { workspace = true }
+serde_json.workspace = true
 
 [lints.clippy]
 all = "warn"

@@ -32,7 +32,7 @@ pub use club::{index_clubs, sync_squad_membership, Club, ClubBundle, ClubRegistr
 pub use competition::{double_round_robin, schedule_weekly, single_round_robin};
 pub use economy::{Balance, Money, WeeklyIncome};
 pub use entity::{
-    age_years, BirthDate, Condition, Contract, FreeAgent, Morale, PersonBundle, Retired,
+    age_years, BirthDate, Condition, Contract, FreeAgent, Morale, Name, PersonBundle, Retired,
     SquadTarget, TeamId, WageDemand,
 };
 pub use league::{run_league_day, League, Matchday, Schedule};

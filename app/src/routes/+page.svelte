@@ -4,12 +4,14 @@
 
   type ClubView = {
     team_id: number;
+    name: string | null;
     balance: number;
     weekly_income: number;
     wage_bill: number;
     squad_size: number;
   };
   type PlayerView = {
+    name: string | null;
     team_id: number | null;
     age: number | null;
     wage: number | null;
@@ -59,7 +61,7 @@
       {#each clubs as c (c.team_id)}
         <li>
           <button class:active={c.team_id === selected} onclick={() => selectClub(c.team_id)}>
-            <span class="name">Team {c.team_id}</span>
+            <span class="name">{c.name ?? `Team ${c.team_id}`}</span>
             <span class="bal" class:neg={c.balance < 0}>{money(c.balance)}</span>
             <span class="sub">{c.squad_size} players · wages {money(c.wage_bill)}/wk</span>
           </button>
@@ -79,7 +81,7 @@
     {#if tab === "squad"}
       {@const club = clubs.find((c) => c.team_id === selected)}
       <header>
-        <h1>Team {selected}</h1>
+        <h1>{club?.name ?? `Team ${selected}`}</h1>
         {#if club}
           <div class="meta">
             Balance <b class:neg={club.balance < 0}>{money(club.balance)}</b> · Income
@@ -90,12 +92,13 @@
       </header>
       <table>
         <thead>
-          <tr><th>#</th><th>Age</th><th>Wage</th><th>Contract until</th><th>Fitness</th><th>Morale</th><th>Status</th></tr>
+          <tr><th>#</th><th>Name</th><th>Age</th><th>Wage</th><th>Contract until</th><th>Fitness</th><th>Morale</th><th>Status</th></tr>
         </thead>
         <tbody>
           {#each squad as p, i}
             <tr>
               <td class="dim">{i + 1}</td>
+              <td>{p.name ?? "—"}</td>
               <td>{p.age ?? "—"}</td>
               <td>{p.wage != null ? money(p.wage) : "—"}</td>
               <td>{p.contract_until ?? "—"}</td>
@@ -109,11 +112,12 @@
     {:else}
       <header><h1>Transfer market</h1><div class="meta">Free agents available to sign</div></header>
       <table>
-        <thead><tr><th>#</th><th>Age</th><th>Fitness</th><th>Status</th></tr></thead>
+        <thead><tr><th>#</th><th>Name</th><th>Age</th><th>Fitness</th><th>Status</th></tr></thead>
         <tbody>
           {#each market as p, i}
             <tr>
               <td class="dim">{i + 1}</td>
+              <td>{p.name ?? "—"}</td>
               <td>{p.age ?? "—"}</td>
               <td>{p.fitness ?? "—"}</td>
               <td>free agent</td>

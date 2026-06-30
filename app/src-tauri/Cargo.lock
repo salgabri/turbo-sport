@@ -1263,6 +1263,8 @@ dependencies = [
  "rand",
  "rand_pcg",
  "rayon",
+ "serde",
+ "serde_json",
  "sim-core",
 ]
 

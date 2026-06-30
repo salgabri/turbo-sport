@@ -12,7 +12,9 @@
 
 use crate::club::Club;
 use crate::economy::{Balance, WeeklyIncome};
-use crate::entity::{age_years, BirthDate, Condition, Contract, FreeAgent, Morale, Retired, TeamId};
+use crate::entity::{
+    age_years, BirthDate, Condition, Contract, FreeAgent, Morale, Name, Retired, TeamId,
+};
 use crate::time::{Date, SimClock};
 use bevy_ecs::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -22,6 +24,7 @@ use std::collections::HashMap;
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ClubView {
     pub team_id: u32,
+    pub name: Option<String>,
     pub balance: i64,
     pub weekly_income: i64,
     /// Sum of the wages of the club's contracted players.
@@ -33,6 +36,7 @@ pub struct ClubView {
 /// A one-row summary of a player for a squad / free-agent table.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct PlayerView {
+    pub name: Option<String>,
     pub team_id: Option<u32>,
     pub age: Option<u32>,
     pub wage: Option<u32>,
@@ -49,6 +53,7 @@ fn player_view(world: &World, entity: Entity, today: Date) -> PlayerView {
     let e = world.entity(entity);
     let contract = e.get::<Contract>();
     PlayerView {
+        name: e.get::<Name>().map(|n| n.0.clone()),
         team_id: e.get::<TeamId>().map(|t| t.0),
         age: e.get::<BirthDate>().map(|b| age_years(b.0, today)),
         wage: contract.map(|c| c.wage),
@@ -76,11 +81,13 @@ pub fn club_views(world: &mut World) -> Vec<ClubView> {
     }
 
     let mut views = Vec::new();
-    let mut q = world.query_filtered::<(Entity, &TeamId, &Balance, &WeeklyIncome), With<Club>>();
-    for (entity, team, balance, income) in q.iter(world) {
+    let mut q = world
+        .query_filtered::<(Entity, &TeamId, Option<&Name>, &Balance, &WeeklyIncome), With<Club>>();
+    for (entity, team, name, balance, income) in q.iter(world) {
         let (squad_size, wage_bill) = agg.get(&entity).copied().unwrap_or((0, 0));
         views.push(ClubView {
             team_id: team.0,
+            name: name.map(|n| n.0.clone()),
             balance: balance.0,
             weekly_income: income.0,
             wage_bill,
@@ -137,7 +144,14 @@ mod tests {
         assert_eq!(views.len(), 1);
         assert_eq!(
             views[0],
-            ClubView { team_id: 0, balance: 5_000, weekly_income: 200, wage_bill: 250, squad_size: 2 }
+            ClubView {
+                team_id: 0,
+                name: None,
+                balance: 5_000,
+                weekly_income: 200,
+                wage_bill: 250,
+                squad_size: 2,
+            }
         );
     }
 

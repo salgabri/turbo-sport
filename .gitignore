@@ -2,4 +2,8 @@
 /target
 **/*.rs.bk
 
+# Generated starting-database files (regenerate with `cargo run -p football --example gen_database`)
+/database.json
+*.db.json
+
 # Cargo lock is committed for the eventual binary; nothing to ignore there yet.

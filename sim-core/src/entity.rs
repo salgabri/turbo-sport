@@ -65,6 +65,11 @@ pub struct FreeAgent;
 #[derive(Component, Clone, Copy, Debug)]
 pub struct Retired;
 
+/// A person's or club's display name. The simulation doesn't need it, but it is carried for
+/// the UI and authored in the starting database. Not `Copy` (owns a `String`).
+#[derive(Component, Clone, Debug, PartialEq, Eq)]
+pub struct Name(pub String);
+
 /// Which team/club an entity belongs to, by stable integer id. Sport-agnostic team
 /// identity — the team sports (football, basketball, …) all tag their players with this
 /// rather than each defining their own identical id type.
