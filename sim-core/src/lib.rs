@@ -20,6 +20,7 @@ pub mod entity;
 pub mod league;
 pub mod lifecycle;
 pub mod persistence;
+pub mod pyramid;
 pub mod rng;
 pub mod schedule;
 pub mod sim;
@@ -38,6 +39,7 @@ pub use lifecycle::RETIREMENT_AGE;
 pub use persistence::{
     read_save, write_save, BincodeCodec, SaveCodec, SaveData, SaveError, FORMAT_VERSION,
 };
+pub use pyramid::Pyramid;
 pub use rng::{derive_seed, SimSeed};
 pub use schedule::build_daily_schedule;
 pub use sim::seeded_parallel_map;

@@ -142,6 +142,38 @@ pub fn play_due_fixtures(world: &mut World) {
     run_league_day::<Season>(world);
 }
 
+/// Simulate a one-off round-robin among `teams` and return the final standings, best-first.
+///
+/// Unlike [`Season`] this is calendar- and lifecycle-free: it just plays the fixtures and
+/// ranks the result. Handy for multi-division setups (each division ranked independently,
+/// then fed to a `sim_core::Pyramid` for promotion/relegation). `comp_id` seeds the matches,
+/// so give each division-season a distinct value.
+pub fn rank_division(world: &mut World, teams: &[u32], world_seed: u64, comp_id: u32) -> Vec<u32> {
+    let lineups = gather_lineups(world);
+    let schedule = Schedule::round_robin(teams, Date::new(2000, 1, 1)); // dates irrelevant here
+    let mut table: BTreeMap<u32, TeamRecord> = teams.iter().map(|&t| (t, TeamRecord::default())).collect();
+
+    for i in 0..schedule.len() {
+        let pairs = schedule.matchday(i).fixtures.clone();
+        let fx: Vec<Fixture> =
+            pairs.iter().map(|&(h, a)| Fixture { home: lineups[&h], away: lineups[&a] }).collect();
+        let results = simulate_matchday(&fx, world_seed, comp_id, i as u32);
+        for (k, res) in results.iter().enumerate() {
+            let (h, a) = pairs[k];
+            record_result(&mut table, h, a, res.home_goals, res.away_goals);
+        }
+    }
+
+    let mut ranked: Vec<(u32, TeamRecord)> = table.into_iter().collect();
+    ranked.sort_by(|(_, a), (_, b)| {
+        b.points
+            .cmp(&a.points)
+            .then(b.goal_difference().cmp(&a.goal_difference()))
+            .then(b.goals_for.cmp(&a.goals_for))
+    });
+    ranked.into_iter().map(|(t, _)| t).collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
