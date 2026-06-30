@@ -378,6 +378,7 @@ name = "football"
 version = "0.1.0"
 dependencies = [
  "bevy_ecs",
+ "bincode",
  "rand",
  "rand_pcg",
  "rayon",

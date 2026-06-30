@@ -16,8 +16,12 @@
 //! plugs its own data into the save is a generalization to harvest later (constraint #4),
 //! not to design speculatively now.
 
+use crate::club::Club;
 use crate::economy::{Balance, WeeklyIncome};
-use crate::entity::{BirthDate, Condition, Contract, FreeAgent, Morale, Retired};
+use crate::entity::{
+    BirthDate, Condition, Contract, FreeAgent, Morale, Name, Retired, SquadTarget, TeamId,
+    WageDemand,
+};
 use crate::rng::SimSeed;
 use crate::time::{Date, SimClock};
 use bevy_ecs::prelude::*;
@@ -29,8 +33,9 @@ use std::fmt;
 pub const MAGIC: [u8; 4] = *b"TSPS";
 
 /// The save format version. Bump on any breaking change to [`SaveData`] and add a
-/// migration arm in [`migrate`].
-pub const FORMAT_VERSION: u16 = 1;
+/// migration arm in [`migrate`]. v2 added name / team_id / squad_target / wage_demand /
+/// is_club to [`EntitySave`].
+pub const FORMAT_VERSION: u16 = 2;
 
 /// A calendar date, mirrored for serialization independently of the runtime [`Date`].
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
@@ -79,14 +84,20 @@ pub struct ClockSave {
 pub struct EntitySave {
     /// Stable index assigned at capture; references (e.g. a contract's club) use it.
     pub id: u32,
+    pub name: Option<String>,
+    pub team_id: Option<u32>,
     pub birth: Option<DateSave>,
     pub morale: Option<u8>,
     pub condition: Option<ConditionSave>,
     pub contract: Option<ContractSave>,
     pub balance: Option<i64>,
     pub weekly_income: Option<i64>,
+    pub squad_target: Option<u32>,
+    pub wage_demand: Option<u32>,
     pub free_agent: bool,
     pub retired: bool,
+    /// True if this entity is a club (carries the `Club` marker).
+    pub is_club: bool,
 }
 
 /// A full snapshot of the simulation's `sim-core` state.
@@ -171,6 +182,8 @@ pub fn capture(world: &World) -> SaveData {
             let er = world.entity(e);
             EntitySave {
                 id: i as u32,
+                name: er.get::<Name>().map(|n| n.0.clone()),
+                team_id: er.get::<TeamId>().map(|t| t.0),
                 birth: er.get::<BirthDate>().map(|b| b.0.into()),
                 morale: er.get::<Morale>().map(|m| m.0),
                 condition: er
@@ -183,8 +196,11 @@ pub fn capture(world: &World) -> SaveData {
                 }),
                 balance: er.get::<Balance>().map(|b| b.0),
                 weekly_income: er.get::<WeeklyIncome>().map(|w| w.0),
+                squad_target: er.get::<SquadTarget>().map(|s| s.0),
+                wage_demand: er.get::<WageDemand>().map(|w| w.0),
                 free_agent: er.contains::<FreeAgent>(),
                 retired: er.contains::<Retired>(),
+                is_club: er.contains::<Club>(),
             }
         })
         .collect();
@@ -196,10 +212,13 @@ pub fn capture(world: &World) -> SaveData {
     }
 }
 
-/// Rebuild a fresh world from a [`SaveData`]. Entities are spawned first to fix the
-/// save-index → live-`Entity` mapping, then components are inserted, resolving a
-/// contract's club index back to the live club entity.
-pub fn restore(data: &SaveData) -> World {
+/// Rebuild a world from a [`SaveData`], also returning a `Vec` mapping each save index to its
+/// live `Entity`. A sport uses this (with [`entity_order`] at capture time) to re-attach its
+/// own per-entity components after the core state is restored.
+///
+/// Entities are spawned first to fix the save-index → live-`Entity` mapping, then components
+/// are inserted, resolving a contract's club index back to the live club entity.
+pub fn restore_indexed(data: &SaveData) -> (World, Vec<Entity>) {
     let mut world = World::new();
     world.insert_resource(SimClock::from_parts(data.clock.date.into(), data.clock.day_index));
     world.insert_resource(SimSeed(data.seed));
@@ -209,6 +228,12 @@ pub fn restore(data: &SaveData) -> World {
 
     for rec in &data.entities {
         let mut em = world.entity_mut(map[&rec.id]);
+        if let Some(n) = &rec.name {
+            em.insert(Name(n.clone()));
+        }
+        if let Some(t) = rec.team_id {
+            em.insert(TeamId(t));
+        }
         if let Some(d) = rec.birth {
             em.insert(BirthDate(d.into()));
         }
@@ -227,15 +252,41 @@ pub fn restore(data: &SaveData) -> World {
         if let Some(w) = rec.weekly_income {
             em.insert(WeeklyIncome(w));
         }
+        if let Some(s) = rec.squad_target {
+            em.insert(SquadTarget(s));
+        }
+        if let Some(w) = rec.wage_demand {
+            em.insert(WageDemand(w));
+        }
         if rec.free_agent {
             em.insert(FreeAgent);
         }
         if rec.retired {
             em.insert(Retired);
         }
+        if rec.is_club {
+            em.insert(Club);
+        }
     }
 
-    world
+    // Save ids are 0..n in capture order, so a positional vec maps index -> entity.
+    let mut ordered = vec![Entity::PLACEHOLDER; data.entities.len()];
+    for rec in &data.entities {
+        ordered[rec.id as usize] = map[&rec.id];
+    }
+    (world, ordered)
+}
+
+/// Rebuild a fresh world from a [`SaveData`].
+pub fn restore(data: &SaveData) -> World {
+    restore_indexed(data).0
+}
+
+/// The order `capture` assigns save indices in: `capture(world).entities[i]` describes
+/// `entity_order(world)[i]`. A sport captures its own per-entity components in this same order
+/// so they line up with the indices for [`restore_indexed`].
+pub fn entity_order(world: &World) -> Vec<Entity> {
+    world.iter_entities().map(|e| e.id()).collect()
 }
 
 /// Bring an older [`SaveData`] up to the current [`FORMAT_VERSION`]. The migration seam:
@@ -275,14 +326,18 @@ mod tests {
     use super::*;
     use crate::build_daily_schedule;
 
-    /// A small world: a club with finances and three people in varied states.
+    /// A small world: a named club with identity + finances, and three people in varied states.
     fn sample_world() -> World {
         let mut world = World::new();
         world.insert_resource(SimClock::starting_on(Date::new(2025, 7, 1)));
         world.insert_resource(SimSeed(0xABCDEF));
 
-        let club = world.spawn((Balance(5_000), WeeklyIncome(200))).id();
+        let club = world
+            .spawn((Club, TeamId(0), Name("Rovers".into()), Balance(5_000), WeeklyIncome(200), SquadTarget(20)))
+            .id();
         world.spawn((
+            Name("A Player".into()),
+            TeamId(0),
             BirthDate(Date::new(2000, 4, 1)),
             Morale(70),
             Condition { fitness: 80, injury_days: 5 },
@@ -330,6 +385,27 @@ mod tests {
             }
         }
         assert!(checked, "expected at least one contracted person");
+    }
+
+    #[test]
+    fn round_trip_preserves_names_team_ids_and_club_marker() {
+        let world = sample_world();
+        let bytes = write_save(&world, &BincodeCodec).unwrap();
+        let loaded = read_save(&bytes, &BincodeCodec).unwrap();
+        let after = capture(&loaded);
+
+        let club = after.entities.iter().find(|e| e.is_club).expect("a club survives");
+        assert_eq!(club.name.as_deref(), Some("Rovers"));
+        assert_eq!(club.team_id, Some(0));
+        assert_eq!(club.squad_target, Some(20));
+
+        let player = after
+            .entities
+            .iter()
+            .find(|e| e.name.as_deref() == Some("A Player"))
+            .expect("named player survives");
+        assert_eq!(player.team_id, Some(0));
+        assert!(player.contract.is_some());
     }
 
     #[test]

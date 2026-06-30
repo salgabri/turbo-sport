@@ -220,6 +220,17 @@ save must survive future patches; schema migration of save files is a recurring,
 unavoidable desktop-game problem. Put a version header in the byte stream on day one
 (independent of which codec is active) and design with migration in mind from the start.
 
+**Sport extension (the deferred "how do sports plug into the save" question, now
+answered).** `sim-core`'s `capture`/`restore` persist only the components it owns; it
+cannot know about a sport's ability components (`Footballer`, …). The mechanism: `sim-core`
+exposes `entity_order(world)` (the order it assigns save indices) and
+`restore_indexed(data) -> (World, Vec<Entity>)` (the index → live-entity map). A sport
+captures its own components as a column aligned to that order, stores it alongside the core
+`SaveData`, and re-attaches it after restore (see `football::persistence` — header `TSFB`,
+core save + a `Footballer` column). So the save is *complete* without `sim-core` ever
+depending on a sport. Same harvest discipline: the pattern stays concrete in the sport
+until a second sport needs it.
+
 If historical data (e.g. full match history) ever outgrows RAM, add `redb` — a
 pure-Rust embedded KV store — to keep it on disk while staying in-process and out of
 the hot path. Explicitly **not** SQLite: SQLite is the right tool for a networked

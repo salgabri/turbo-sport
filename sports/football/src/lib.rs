@@ -13,6 +13,7 @@ pub mod career;
 pub mod database;
 pub mod engine;
 pub mod matchday;
+pub mod persistence;
 pub mod season;
 
 pub use attributes::Footballer;

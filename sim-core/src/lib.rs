@@ -38,7 +38,8 @@ pub use entity::{
 pub use league::{run_league_day, League, Matchday, Schedule};
 pub use lifecycle::RETIREMENT_AGE;
 pub use persistence::{
-    read_save, write_save, BincodeCodec, SaveCodec, SaveData, SaveError, FORMAT_VERSION,
+    capture, entity_order, read_save, restore, restore_indexed, write_save, BincodeCodec,
+    SaveCodec, SaveData, SaveError, FORMAT_VERSION,
 };
 pub use pyramid::Pyramid;
 pub use rng::{derive_seed, SimSeed};
