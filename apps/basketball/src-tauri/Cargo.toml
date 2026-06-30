@@ -1,0 +1,34 @@
+[package]
+name = "app"
+version = "0.1.0"
+description = "A Tauri App"
+authors = ["you"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "app_lib"
+# Desktop only needs the rlib (linked into the exe). The cdylib/staticlib are for mobile, and
+# their huge Windows export table overflows the gnu linker ("export ordinal too large") — so
+# we omit them, which also lets the app build with the gnu toolchain (no MSVC/admin needed).
+crate-type = ["rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+# Own workspace root: keeps this heavy desktop app decoupled from the lean sim workspace
+# (which `exclude`s it). Without this, cargo treats src-tauri as a stray member.
+[workspace]
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# The simulation core + the basketball sport.
+sim-core = { path = "../../../sim-core" }
+basketball = { path = "../../../sports/basketball" }
+bevy_ecs = "0.16"
+

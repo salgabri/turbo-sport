@@ -10,11 +10,12 @@
 
 use crate::matchday::{gather_rosters, simulate_matchday, Fixture};
 use bevy_ecs::prelude::*;
+use serde::{Deserialize, Serialize};
 use sim_core::{run_league_day, Date, League, Schedule};
 use std::collections::BTreeMap;
 
 /// A team's win/loss record.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TeamRecord {
     pub won: u32,
     pub lost: u32,
