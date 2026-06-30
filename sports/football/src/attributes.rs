@@ -1,11 +1,10 @@
-//! Football's player ability schema — the sport-specific components that `sim-core`
+//! Football's player ability schema — the sport-specific component that `sim-core`
 //! deliberately does not know about (it owns birth date, contract, condition; the sport
 //! owns what makes someone good *at football*).
 //!
-//! This is intentionally football-shaped, not a generalised "attributes" abstraction.
-//! Per `CLAUDE.md` constraint #4, the shared trait surface is harvested only once a
-//! second sport (cycling) exists to reveal where the real boundaries are — so cycling
-//! will define its own climbing/sprinting components rather than reusing these.
+//! Team identity is *not* here: `TeamId` is shared, sport-agnostic, and lives in
+//! `sim-core` (football and basketball used identical copies). Only the football-shaped
+//! ability set is sport-specific.
 
 use bevy_ecs::prelude::*;
 
@@ -19,8 +18,3 @@ pub struct Footballer {
     pub finishing: u8,
     pub goalkeeping: u8,
 }
-
-/// Which team a player belongs to. A lightweight integer id for now; once clubs are full
-/// entities with squads this becomes a relation to the club entity.
-#[derive(Component, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct TeamId(pub u32);

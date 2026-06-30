@@ -65,6 +65,12 @@ pub struct FreeAgent;
 #[derive(Component, Clone, Copy, Debug)]
 pub struct Retired;
 
+/// Which team/club an entity belongs to, by stable integer id. Sport-agnostic team
+/// identity — the team sports (football, basketball, …) all tag their players with this
+/// rather than each defining their own identical id type.
+#[derive(Component, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct TeamId(pub u32);
+
 /// A club's desired squad size. The transfer system signs free agents to clubs that are
 /// below this target.
 #[derive(Component, Clone, Copy, Debug)]

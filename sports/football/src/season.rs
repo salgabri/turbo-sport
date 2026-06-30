@@ -15,7 +15,7 @@
 
 use crate::matchday::{gather_lineups, simulate_matchday, Fixture};
 use bevy_ecs::prelude::*;
-use sim_core::{double_round_robin, schedule_weekly, Date, SimClock};
+use sim_core::{Date, Schedule, SimClock};
 use std::collections::BTreeMap;
 
 /// One team's running record in the league table.
@@ -36,43 +36,28 @@ impl TeamRecord {
     }
 }
 
-/// A scheduled round of fixtures on a specific date.
-#[derive(Clone, Debug)]
-pub struct Matchday {
-    pub date: Date,
-    /// `(home_team, away_team)` pairs by `TeamId` value.
-    pub fixtures: Vec<(u32, u32)>,
-    pub played: bool,
-}
-
-/// A full league season: its fixture calendar and standings.
+/// A full league season: its fixture calendar (the shared `sim-core` [`Schedule`]) and its
+/// football-specific standings table.
 #[derive(Resource, Clone, Debug)]
 pub struct Season {
     pub teams: Vec<u32>,
-    pub matchdays: Vec<Matchday>,
-    /// Index of the next unplayed matchday.
-    pub next: usize,
+    pub schedule: Schedule,
     pub table: BTreeMap<u32, TeamRecord>,
     pub world_seed: u64,
     pub season_id: u32,
 }
 
 impl Season {
-    /// Build a season: a double round-robin (everyone plays everyone home and away),
-    /// one matchday per week starting on `start`. Requires an even number of teams.
+    /// Build a season: a double round-robin, one matchday per week from `start`. The
+    /// scheduling is the shared sim-core piece; the table rules below are football's own.
     pub fn new(teams: Vec<u32>, start: Date, world_seed: u64, season_id: u32) -> Self {
-        // Round-robin scheduling is the shared, sport-agnostic piece (sim-core); the table
-        // rules below are football's own.
-        let matchdays = schedule_weekly(double_round_robin(&teams), start)
-            .into_iter()
-            .map(|(date, fixtures)| Matchday { date, fixtures, played: false })
-            .collect();
+        let schedule = Schedule::round_robin(&teams, start);
         let table = teams.iter().map(|&t| (t, TeamRecord::default())).collect();
-        Season { teams, matchdays, next: 0, table, world_seed, season_id }
+        Season { teams, schedule, table, world_seed, season_id }
     }
 
     pub fn is_complete(&self) -> bool {
-        self.next >= self.matchdays.len()
+        self.schedule.is_complete()
     }
 
     /// Standings ordered by points, then goal difference, then goals scored.
@@ -145,12 +130,8 @@ pub fn play_due_fixtures(world: &mut World) {
     }
     world.resource_scope(|world, mut season: Mut<Season>| {
         let today = world.resource::<SimClock>().date();
-        loop {
-            let i = season.next;
-            if i >= season.matchdays.len() || season.matchdays[i].played || season.matchdays[i].date > today {
-                break;
-            }
-            let pairs = season.matchdays[i].fixtures.clone();
+        for i in season.schedule.take_due(today) {
+            let pairs = season.schedule.matchday(i).fixtures.clone();
             let lineups = gather_lineups(world);
             let fixtures: Vec<Fixture> =
                 pairs.iter().map(|&(h, a)| Fixture { home: lineups[&h], away: lineups[&a] }).collect();
@@ -159,8 +140,6 @@ pub fn play_due_fixtures(world: &mut World) {
                 let (h, a) = pairs[k];
                 record_result(&mut season.table, h, a, res.home_goals, res.away_goals);
             }
-            season.matchdays[i].played = true;
-            season.next += 1;
         }
     });
 }
@@ -168,8 +147,8 @@ pub fn play_due_fixtures(world: &mut World) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::attributes::{Footballer, TeamId};
-    use sim_core::{build_daily_schedule, SimSeed};
+    use crate::attributes::Footballer;
+    use sim_core::{build_daily_schedule, SimSeed, TeamId};
 
     /// Spawn `teams` clubs of identical-ish players into a world and return it.
     fn league_world(teams: u32) -> World {
@@ -220,7 +199,7 @@ mod tests {
         let s2 = s1.next_season(Date::new(2026, 8, 8));
         assert_eq!(s2.season_id, 2026);
         assert!(s2.table.values().all(|r| *r == TeamRecord::default()));
-        assert_eq!(s2.next, 0);
-        assert!(s2.matchdays[0].date > s1.matchdays[0].date);
+        assert!(!s2.schedule.is_complete());
+        assert!(s2.schedule.matchday(0).date > s1.schedule.matchday(0).date);
     }
 }

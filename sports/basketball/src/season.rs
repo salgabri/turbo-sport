@@ -3,14 +3,14 @@
 //! is why the table rules live here per-sport while only the round-robin scheduler is shared
 //! from `sim-core`.
 //!
-//! The season-driver shape (gather → play due matchdays → fold into a table) is now
-//! duplicated between football and basketball. That is a candidate for a future harvest into
-//! a generic league driver — but the result→table fold genuinely differs per sport, so it is
-//! left concrete until the shared shape is clearer (constraint #4).
+//! The fixture calendar and matchday progression are the shared `sim-core` [`Schedule`];
+//! only the win/loss table fold below is basketball's own. (The remaining driver shell —
+//! gather → play due → fold — still mirrors football's; a generic driver could harvest it
+//! later, but the result→table fold differs per sport, so it stays concrete for now.)
 
 use crate::matchday::{gather_rosters, simulate_matchday, Fixture};
 use bevy_ecs::prelude::*;
-use sim_core::{double_round_robin, schedule_weekly, Date, SimClock};
+use sim_core::{Date, Schedule, SimClock};
 use std::collections::BTreeMap;
 
 /// A team's win/loss record.
@@ -39,18 +39,10 @@ impl TeamRecord {
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct Matchday {
-    pub date: Date,
-    pub fixtures: Vec<(u32, u32)>,
-    pub played: bool,
-}
-
 #[derive(Resource, Clone, Debug)]
 pub struct Season {
     pub teams: Vec<u32>,
-    pub matchdays: Vec<Matchday>,
-    pub next: usize,
+    pub schedule: Schedule,
     pub table: BTreeMap<u32, TeamRecord>,
     pub world_seed: u64,
     pub season_id: u32,
@@ -58,16 +50,13 @@ pub struct Season {
 
 impl Season {
     pub fn new(teams: Vec<u32>, start: Date, world_seed: u64, season_id: u32) -> Self {
-        let matchdays = schedule_weekly(double_round_robin(&teams), start)
-            .into_iter()
-            .map(|(date, fixtures)| Matchday { date, fixtures, played: false })
-            .collect();
+        let schedule = Schedule::round_robin(&teams, start);
         let table = teams.iter().map(|&t| (t, TeamRecord::default())).collect();
-        Season { teams, matchdays, next: 0, table, world_seed, season_id }
+        Season { teams, schedule, table, world_seed, season_id }
     }
 
     pub fn is_complete(&self) -> bool {
-        self.next >= self.matchdays.len()
+        self.schedule.is_complete()
     }
 
     /// Standings by win percentage, then point differential.
@@ -114,12 +103,8 @@ pub fn play_due_fixtures(world: &mut World) {
     }
     world.resource_scope(|world, mut season: Mut<Season>| {
         let today = world.resource::<SimClock>().date();
-        loop {
-            let i = season.next;
-            if i >= season.matchdays.len() || season.matchdays[i].played || season.matchdays[i].date > today {
-                break;
-            }
-            let pairs = season.matchdays[i].fixtures.clone();
+        for i in season.schedule.take_due(today) {
+            let pairs = season.schedule.matchday(i).fixtures.clone();
             let rosters = gather_rosters(world);
             let fixtures: Vec<Fixture> =
                 pairs.iter().map(|&(h, a)| Fixture { home: rosters[&h], away: rosters[&a] }).collect();
@@ -128,8 +113,6 @@ pub fn play_due_fixtures(world: &mut World) {
                 let (h, a) = pairs[k];
                 record_result(&mut season.table, h, a, res.home_points, res.away_points);
             }
-            season.matchdays[i].played = true;
-            season.next += 1;
         }
     });
 }
@@ -137,8 +120,8 @@ pub fn play_due_fixtures(world: &mut World) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::attributes::{Baller, TeamId};
-    use sim_core::{build_daily_schedule, SimSeed};
+    use crate::attributes::Baller;
+    use sim_core::{build_daily_schedule, SimSeed, TeamId};
 
     fn league_world(teams: u32) -> World {
         let mut world = World::new();

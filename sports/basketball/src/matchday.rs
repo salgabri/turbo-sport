@@ -1,11 +1,11 @@
 //! Gather rosters from the ECS world and simulate a matchday in parallel — same pipeline
 //! shape as football, using the shared `sim_core::seeded_parallel_map`.
 
-use crate::attributes::{Baller, TeamId};
+use crate::attributes::Baller;
 use crate::engine::{simulate_game, GameResult, Roster};
 use bevy_ecs::prelude::*;
 use rand_pcg::Pcg64Mcg;
-use sim_core::seeded_parallel_map;
+use sim_core::{seeded_parallel_map, TeamId};
 use std::collections::BTreeMap;
 
 /// A fixture resolved to its two rosters.

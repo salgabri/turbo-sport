@@ -16,6 +16,7 @@
 pub mod competition;
 pub mod economy;
 pub mod entity;
+pub mod league;
 pub mod lifecycle;
 pub mod persistence;
 pub mod rng;
@@ -28,8 +29,9 @@ pub use competition::{double_round_robin, schedule_weekly, single_round_robin};
 pub use economy::{Balance, Money, WeeklyIncome};
 pub use entity::{
     age_years, BirthDate, Condition, Contract, FreeAgent, Morale, PersonBundle, Retired,
-    SquadTarget, WageDemand,
+    SquadTarget, TeamId, WageDemand,
 };
+pub use league::{Matchday, Schedule};
 pub use lifecycle::RETIREMENT_AGE;
 pub use persistence::{
     read_save, write_save, BincodeCodec, SaveCodec, SaveData, SaveError, FORMAT_VERSION,

@@ -46,7 +46,7 @@ fn main() {
     let season = world.resource::<Season>();
     println!(
         "Basketball season 2025: {} games each, {days} simulated days. Final standings:",
-        season.matchdays.len()
+        season.schedule.len()
     );
     println!("  seed  team    W    L    Pct    PF     PA   Diff");
     for (pos, (team, r)) in season.standings().iter().enumerate() {

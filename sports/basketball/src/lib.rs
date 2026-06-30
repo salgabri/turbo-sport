@@ -11,7 +11,9 @@ pub mod engine;
 pub mod matchday;
 pub mod season;
 
-pub use attributes::{Baller, TeamId};
+pub use attributes::Baller;
 pub use engine::{simulate_game, GameResult, Roster};
 pub use matchday::{gather_rosters, simulate_matchday, Fixture};
-pub use season::{play_due_fixtures, Matchday, Season, TeamRecord};
+pub use season::{play_due_fixtures, Season, TeamRecord};
+// Team identity is shared; re-export so `basketball::TeamId` still resolves.
+pub use sim_core::TeamId;

@@ -54,7 +54,7 @@ fn main() {
     let season = world.resource::<Season>();
     println!(
         "Season {SEASON_ID}: {} matchdays over {days} simulated days. Final table:",
-        season.matchdays.len()
+        season.schedule.len()
     );
     println!("  pos  team    P   W   D   L   GF   GA   GD   Pts");
     for (pos, (team, r)) in season.standings().iter().enumerate() {

@@ -9,11 +9,11 @@
 //! a person (birth date, condition, morale) come from `sim-core`; only the `Footballer`
 //! attributes are added here — the same split the schema has everywhere.
 
-use crate::attributes::{Footballer, TeamId};
+use crate::attributes::Footballer;
 use bevy_ecs::prelude::*;
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64Mcg;
-use sim_core::{derive_seed, BirthDate, Condition, Date, Morale, Retired};
+use sim_core::{derive_seed, BirthDate, Condition, Date, Morale, Retired, TeamId};
 use std::collections::HashMap;
 
 /// Top every team up to `target` active (non-retired) players with newly generated youth.

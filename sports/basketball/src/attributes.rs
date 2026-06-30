@@ -1,4 +1,5 @@
-//! Basketball's player ability schema — sport-specific, like football's and cycling's.
+//! Basketball's player ability schema — sport-specific. Team identity (`TeamId`) is shared
+//! and lives in `sim-core`; only the ability set is basketball's own.
 
 use bevy_ecs::prelude::*;
 
@@ -10,7 +11,3 @@ pub struct Baller {
     pub three_point: u8,
     pub rebounding: u8,
 }
-
-/// Which team a player belongs to.
-#[derive(Component, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct TeamId(pub u32);

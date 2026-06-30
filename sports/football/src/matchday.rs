@@ -6,11 +6,11 @@
 //! determinism contract (per-fixture seeding, no shared RNG). Writing results back into the
 //! world (standings, condition, injuries) is single-threaded and belongs to later steps.
 
-use crate::attributes::{Footballer, TeamId};
+use crate::attributes::Footballer;
 use crate::engine::{simulate_match, Lineup, MatchResult};
 use bevy_ecs::prelude::*;
 use rand_pcg::Pcg64Mcg;
-use sim_core::{seeded_parallel_map, Retired};
+use sim_core::{seeded_parallel_map, Retired, TeamId};
 use std::collections::BTreeMap;
 
 /// A fixture, fully resolved to its two lineups so simulating it needs no ECS access.

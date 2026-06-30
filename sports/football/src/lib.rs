@@ -14,8 +14,10 @@ pub mod engine;
 pub mod matchday;
 pub mod season;
 
-pub use attributes::{Footballer, TeamId};
+pub use attributes::Footballer;
 pub use career::regen_youth;
 pub use engine::{simulate_match, Chance, Lineup, MatchResult, MATCH_MINUTES};
 pub use matchday::{gather_lineups, simulate_matchday, Fixture};
-pub use season::{play_due_fixtures, Matchday, Season, TeamRecord};
+pub use season::{play_due_fixtures, Season, TeamRecord};
+// Team identity is shared; re-export so `football::TeamId` still resolves.
+pub use sim_core::TeamId;
