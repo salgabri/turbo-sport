@@ -13,6 +13,7 @@
 //! What exists today is build-order step 2: a world that can advance simulated time
 //! from days to seasons.
 
+pub mod club;
 pub mod competition;
 pub mod economy;
 pub mod entity;
@@ -25,6 +26,7 @@ pub mod sim;
 pub mod time;
 pub mod transfers;
 
+pub use club::{index_clubs, sync_squad_membership, Club, ClubBundle, ClubRegistry};
 pub use competition::{double_round_robin, schedule_weekly, single_round_robin};
 pub use economy::{Balance, Money, WeeklyIncome};
 pub use entity::{
