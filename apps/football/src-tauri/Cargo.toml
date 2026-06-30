@@ -27,8 +27,9 @@ tauri-plugin-opener = "2"
 tauri-plugin-dialog = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-# The simulation core + a sport to populate a demo world. Path deps into the sim workspace.
-sim-core = { path = "../../sim-core" }
-football = { path = "../../sports/football" }
+# The simulation core + the football sport. Path deps into the sim workspace (now one level
+# deeper under apps/).
+sim-core = { path = "../../../sim-core" }
+football = { path = "../../../sports/football" }
 bevy_ecs = "0.16"
 
