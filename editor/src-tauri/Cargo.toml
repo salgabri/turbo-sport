@@ -1,0 +1,26 @@
+[package]
+name = "editor"
+version = "0.1.0"
+description = "Turbo Sport database editor"
+authors = ["you"]
+edition = "2021"
+
+[lib]
+name = "editor_lib"
+# Desktop only needs the rlib (linked into the exe). Dropping the mobile cdylib/staticlib
+# avoids the gnu linker's "export ordinal too large" limit, so this builds on gnu (no MSVC).
+crate-type = ["rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# The database type + its loader/validator live in the football crate.
+football = { path = "../../sports/football" }
+
+# Own workspace root: keeps this desktop app decoupled from the lean sim workspace.
+[workspace]
