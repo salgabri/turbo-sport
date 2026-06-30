@@ -13,7 +13,9 @@ use crate::attributes::Footballer;
 use bevy_ecs::prelude::*;
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64Mcg;
-use sim_core::{derive_seed, BirthDate, Condition, Date, Morale, Retired, TeamId};
+use sim_core::{
+    derive_seed, BirthDate, Condition, Date, FreeAgent, Morale, Retired, TeamId, WageDemand,
+};
 use std::collections::HashMap;
 
 /// Top every team up to `target` active (non-retired) players with newly generated youth.
@@ -60,6 +62,38 @@ pub fn regen_youth(
     }
 }
 
+/// Generate `count` youth players as **free agents** entering the transfer market: 16–18
+/// years old, modest abilities and wage demands, deterministically seeded. Unlike
+/// [`regen_youth`] (which assigns directly to a team), these go into the market for clubs to
+/// sign — the Club-model way, where squad membership comes from a contract, not a raw tag.
+pub fn generate_prospects(world: &mut World, count: u32, world_seed: u64, season_id: u32, today: Date) {
+    for k in 0..count {
+        let seed = derive_seed(world_seed, &[u64::from(season_id), 0xF00D, u64::from(k)]);
+        let mut rng = Pcg64Mcg::seed_from_u64(seed);
+        let age = rng.gen_range(16i32..=18);
+        let birth = Date::new(
+            today.year() - age,
+            1 + rng.gen_range(0u8..12),
+            1 + rng.gen_range(0u8..28),
+        );
+        let ability = Footballer {
+            attacking: rng.gen_range(40u8..=65),
+            defending: rng.gen_range(40u8..=65),
+            finishing: rng.gen_range(40u8..=65),
+            goalkeeping: rng.gen_range(40u8..=65),
+        };
+        let demand = rng.gen_range(40u32..=120);
+        world.spawn((
+            ability,
+            BirthDate(birth),
+            Morale(70),
+            Condition::fit(),
+            FreeAgent,
+            WageDemand(demand),
+        ));
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -92,6 +126,14 @@ mod tests {
 
         // Topped up to 4 *active*; the retired one is extra.
         assert_eq!(active_count(&mut world, 0), 4);
+    }
+
+    #[test]
+    fn prospects_enter_the_market_as_free_agents() {
+        let mut world = World::new();
+        generate_prospects(&mut world, 5, 1, 2025, Date::new(2026, 7, 1));
+        let free_agents = world.query_filtered::<&WageDemand, With<FreeAgent>>().iter(&world).count();
+        assert_eq!(free_agents, 5);
     }
 
     #[test]
