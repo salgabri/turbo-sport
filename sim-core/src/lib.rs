@@ -26,6 +26,7 @@ pub mod schedule;
 pub mod sim;
 pub mod time;
 pub mod transfers;
+pub mod view;
 
 pub use club::{index_clubs, sync_squad_membership, Club, ClubBundle, ClubRegistry};
 pub use competition::{double_round_robin, schedule_weekly, single_round_robin};
@@ -45,3 +46,4 @@ pub use schedule::build_daily_schedule;
 pub use sim::seeded_parallel_map;
 pub use time::{advance_time, Date, SimClock};
 pub use transfers::run_transfer_window;
+pub use view::{club_views, free_agents, squad, ClubView, PlayerView};
