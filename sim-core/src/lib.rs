@@ -33,7 +33,7 @@ pub use entity::{
     age_years, BirthDate, Condition, Contract, FreeAgent, Morale, PersonBundle, Retired,
     SquadTarget, TeamId, WageDemand,
 };
-pub use league::{Matchday, Schedule};
+pub use league::{run_league_day, League, Matchday, Schedule};
 pub use lifecycle::RETIREMENT_AGE;
 pub use persistence::{
     read_save, write_save, BincodeCodec, SaveCodec, SaveData, SaveError, FORMAT_VERSION,

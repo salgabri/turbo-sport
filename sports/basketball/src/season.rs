@@ -10,7 +10,7 @@
 
 use crate::matchday::{gather_rosters, simulate_matchday, Fixture};
 use bevy_ecs::prelude::*;
-use sim_core::{Date, Schedule, SimClock};
+use sim_core::{run_league_day, Date, League, Schedule};
 use std::collections::BTreeMap;
 
 /// A team's win/loss record.
@@ -96,32 +96,35 @@ fn record_result(table: &mut BTreeMap<u32, TeamRecord>, home: u32, away: u32, hp
     }
 }
 
-/// Play every due, unplayed matchday, updating the table. Call once per simulated day.
-pub fn play_due_fixtures(world: &mut World) {
-    if world.get_resource::<Season>().is_none() {
-        return;
+impl League for Season {
+    fn schedule(&mut self) -> &mut Schedule {
+        &mut self.schedule
     }
-    world.resource_scope(|world, mut season: Mut<Season>| {
-        let today = world.resource::<SimClock>().date();
-        for i in season.schedule.take_due(today) {
-            let pairs = season.schedule.matchday(i).fixtures.clone();
-            let rosters = gather_rosters(world);
-            let fixtures: Vec<Fixture> =
-                pairs.iter().map(|&(h, a)| Fixture { home: rosters[&h], away: rosters[&a] }).collect();
-            let results = simulate_matchday(&fixtures, season.world_seed, season.season_id, i as u32);
-            for (k, res) in results.iter().enumerate() {
-                let (h, a) = pairs[k];
-                record_result(&mut season.table, h, a, res.home_points, res.away_points);
-            }
+
+    fn play_matchday(&mut self, world: &mut World, index: usize, fixtures: &[(u32, u32)]) {
+        let rosters = gather_rosters(world);
+        let fx: Vec<Fixture> =
+            fixtures.iter().map(|&(h, a)| Fixture { home: rosters[&h], away: rosters[&a] }).collect();
+        let results = simulate_matchday(&fx, self.world_seed, self.season_id, index as u32);
+        for (k, res) in results.iter().enumerate() {
+            let (h, a) = fixtures[k];
+            record_result(&mut self.table, h, a, res.home_points, res.away_points);
         }
-    });
+    }
+}
+
+/// Play every matchday whose date the clock has reached, updating the table. Call once per
+/// simulated day. The driver is the shared [`run_league_day`]; this season provides only the
+/// per-matchday play above.
+pub fn play_due_fixtures(world: &mut World) {
+    run_league_day::<Season>(world);
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::attributes::Baller;
-    use sim_core::{build_daily_schedule, SimSeed, TeamId};
+    use sim_core::{build_daily_schedule, SimClock, SimSeed, TeamId};
 
     fn league_world(teams: u32) -> World {
         let mut world = World::new();

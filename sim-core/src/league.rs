@@ -8,7 +8,8 @@
 //! the [`Schedule`]; each sport's `Season` embeds one alongside its own table.
 
 use crate::competition::{double_round_robin, schedule_weekly};
-use crate::time::Date;
+use crate::time::{Date, SimClock};
+use bevy_ecs::prelude::*;
 
 /// A scheduled round of fixtures on a date. `fixtures` are `(home, away)` team-id pairs.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -69,6 +70,41 @@ impl Schedule {
         }
         due
     }
+}
+
+/// A sport's league season, drivable by [`run_league_day`].
+///
+/// This is the harvested half of what football and basketball duplicated: the calendar
+/// progression (owned here) is shared, while the parts that genuinely differ — gathering a
+/// lineup, simulating, and folding results into the sport's own standings table — are the
+/// sport's [`play_matchday`](League::play_matchday) implementation. Same split as the rest of
+/// the shared layer: centralize the subtle mechanism (the `resource_scope` + `take_due` dance
+/// and the matchday-index seeding convention), keep the domain logic concrete per sport.
+pub trait League: Resource {
+    /// This season's fixture calendar.
+    fn schedule(&mut self) -> &mut Schedule;
+
+    /// Play matchday `index` with the given `fixtures`: simulate them and fold the results
+    /// into this season's standings. `world` is available (this season resource has been
+    /// taken out of it) for gathering lineups.
+    fn play_matchday(&mut self, world: &mut World, index: usize, fixtures: &[(u32, u32)]);
+}
+
+/// Drive a league for one simulated day: play every matchday whose date the clock has
+/// reached, in order. A no-op if the season resource is absent. Call once per day, after the
+/// daily schedule. The whole `resource_scope`/`take_due` mechanism lives here so each sport's
+/// driver is a one-liner over its [`League`] impl.
+pub fn run_league_day<S: League>(world: &mut World) {
+    if world.get_resource::<S>().is_none() {
+        return;
+    }
+    let today = world.resource::<SimClock>().date();
+    world.resource_scope(|world, mut season: Mut<S>| {
+        for index in season.schedule().take_due(today) {
+            let fixtures = season.schedule().matchday(index).fixtures.clone();
+            season.play_matchday(world, index, &fixtures);
+        }
+    });
 }
 
 #[cfg(test)]
