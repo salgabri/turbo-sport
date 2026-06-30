@@ -55,17 +55,19 @@ layout + full multicore parallelism + no database in the simulation hot path.
   outgrows RAM. **Not** SQLite — stay in-process and out of the hot path.
 - **Target:** standalone desktop app, Windows primary, cross-platform via the
   toolchain. No server, no network dependency for core play.
+- **UI layer (ratified):** **Tauri + Svelte.** Chosen for the data-dense primary
+  experience ("Excel with moments") — the web platform's virtualized tables are the best
+  tool for the squad/finances/transfer/league grids that are the main screen; native
+  Windows installers + auto-updater + small binaries come for free. The Rust↔JS IPC
+  boundary is the managed cost: the UI consumes the **`sim_core::view`** summarized DTOs
+  (`club_views`, `squad`, `free_agents`, …) — **never raw 100k rows**. Match views are
+  secondary (PixiJS/Three.js in the webview). `sim-core` stays UI-agnostic; the read layer
+  is the contract. (all-Bevy was the runner-up — revisit only if live match visualization
+  ever becomes the centerpiece rather than polish.)
 
 ## Open decisions — do NOT resolve implicitly
 
-- **UI layer:** undecided between
-  - **(a) Tauri + Svelte** — best-in-class dense data tables; requires deliberately
-    managing the Rust↔webview IPC boundary (never ship 100k rows across it —
-    paginate / virtualize / summarize), and
-  - **(b) all-Bevy** — sim and match view in one engine, no glue, but weaker tooling
-    for dense tabular UI.
-  Build the sim core UI-agnostic so this stays deferrable. If a UI decision becomes
-  necessary, **surface it — do not pick silently.**
+- *(none currently — the UI layer was ratified to Tauri + Svelte; see Locked decisions.)*
 
 ## Workspace layout (Cargo workspace)
 

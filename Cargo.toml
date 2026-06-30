@@ -8,6 +8,10 @@
 [workspace]
 resolver = "2"
 members = ["sim-core", "sports/football", "sports/cycling", "sports/basketball", "sports/tennis"]
+# The Tauri desktop app is its own project: it pulls a large, platform-specific dependency
+# tree (webview, build tooling) that we keep out of the lean sim workspace. It depends on
+# sim-core/football by path. Build it from app/ with `npm run tauri ...`.
+exclude = ["app"]
 
 [workspace.package]
 edition = "2021"
