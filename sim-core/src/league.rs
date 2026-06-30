@@ -50,6 +50,17 @@ impl Schedule {
         self.next >= self.matchdays.len()
     }
 
+    /// The cursor: index of the next unplayed matchday. Exposed for persistence.
+    pub fn next_index(&self) -> usize {
+        self.next
+    }
+
+    /// Reconstruct a schedule from saved matchdays and cursor — used by a sport's save/load to
+    /// persist an in-progress season (the runtime fields are otherwise private).
+    pub fn from_parts(matchdays: Vec<Matchday>, next: usize) -> Self {
+        Self { matchdays, next }
+    }
+
     /// The matchday at `index` (e.g. to read its fixtures or date).
     pub fn matchday(&self, index: usize) -> &Matchday {
         &self.matchdays[index]

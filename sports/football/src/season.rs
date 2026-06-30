@@ -15,11 +15,12 @@
 
 use crate::matchday::{gather_lineups, simulate_matchday, Fixture};
 use bevy_ecs::prelude::*;
+use serde::{Deserialize, Serialize};
 use sim_core::{run_league_day, Date, League, Schedule};
 use std::collections::BTreeMap;
 
 /// One team's running record in the league table.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TeamRecord {
     pub played: u32,
     pub won: u32,

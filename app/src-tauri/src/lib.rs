@@ -142,8 +142,8 @@ fn save_game(path: String, state: State<AppState>) -> Result<(), String> {
     football::persistence::save_file(&world, &path).map_err(|e| e.to_string())
 }
 
-/// Load a saved game, replacing the live world. (The in-progress league is transient and not
-/// part of the save — start a new season after loading.)
+/// Load a saved game, replacing the live world. An in-progress league season is part of the
+/// save and is restored too.
 #[tauri::command]
 fn load_game(path: String, state: State<AppState>) -> Result<String, String> {
     let loaded = football::persistence::load_file(&path).map_err(|e| e.to_string())?;

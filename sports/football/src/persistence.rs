@@ -12,12 +12,14 @@
 //! harvested.
 
 use crate::attributes::Footballer;
+use crate::season::{Season, TeamRecord};
 use bevy_ecs::prelude::*;
 use serde::{Deserialize, Serialize};
-use sim_core::{capture, entity_order, restore_indexed, SaveData};
+use sim_core::{capture, entity_order, restore_indexed, DbDate, Matchday, SaveData, Schedule};
+use std::collections::BTreeMap;
 
 const MAGIC: [u8; 4] = *b"TSFB";
-const VERSION: u16 = 1;
+const VERSION: u16 = 2;
 
 #[derive(Serialize, Deserialize)]
 struct FootballerRecord {
@@ -27,12 +29,66 @@ struct FootballerRecord {
     goalkeeping: u8,
 }
 
-/// The football game save: the core sim-core snapshot plus a football ability column aligned
-/// to it by save index (`None` where the entity isn't a footballer).
+/// A matchday, mirrored for the save (the runtime `Matchday`'s `Date` isn't serde).
+#[derive(Serialize, Deserialize)]
+struct MatchdaySave {
+    date: DbDate,
+    fixtures: Vec<(u32, u32)>,
+    played: bool,
+}
+
+/// An in-progress league season, mirrored: its fixture calendar (matchdays + cursor) and table.
+#[derive(Serialize, Deserialize)]
+struct SeasonSave {
+    teams: Vec<u32>,
+    matchdays: Vec<MatchdaySave>,
+    next: usize,
+    table: Vec<(u32, TeamRecord)>,
+    world_seed: u64,
+    season_id: u32,
+}
+
+/// The football game save: the core sim-core snapshot, a football ability column aligned to it
+/// by save index, and any in-progress league season.
 #[derive(Serialize, Deserialize)]
 struct GameSave {
     core: SaveData,
     footballers: Vec<Option<FootballerRecord>>,
+    season: Option<SeasonSave>,
+}
+
+fn capture_season(world: &World) -> Option<SeasonSave> {
+    let s = world.get_resource::<Season>()?;
+    let matchdays = (0..s.schedule.len())
+        .map(|i| {
+            let m = s.schedule.matchday(i);
+            MatchdaySave { date: m.date.into(), fixtures: m.fixtures.clone(), played: m.played }
+        })
+        .collect();
+    Some(SeasonSave {
+        teams: s.teams.clone(),
+        matchdays,
+        next: s.schedule.next_index(),
+        table: s.table.iter().map(|(&k, &v)| (k, v)).collect(),
+        world_seed: s.world_seed,
+        season_id: s.season_id,
+    })
+}
+
+fn restore_season(world: &mut World, ss: SeasonSave) {
+    let matchdays = ss
+        .matchdays
+        .into_iter()
+        .map(|m| Matchday { date: m.date.to_date(), fixtures: m.fixtures, played: m.played })
+        .collect();
+    let table: BTreeMap<u32, TeamRecord> = ss.table.into_iter().collect();
+    world.insert_resource(Season {
+        teams: ss.teams,
+        schedule: Schedule::from_parts(matchdays, ss.next),
+        table,
+        world_seed: ss.world_seed,
+        season_id: ss.season_id,
+    });
 }
 
 /// Serialize a football world to bytes: header, then bincode of the core save + abilities.
@@ -50,7 +106,7 @@ pub fn save_to_bytes(world: &World) -> Vec<u8> {
         })
         .collect();
 
-    let save = GameSave { core, footballers };
+    let save = GameSave { core, footballers, season: capture_season(world) };
     let mut out = Vec::new();
     out.extend_from_slice(&MAGIC);
     out.extend_from_slice(&VERSION.to_le_bytes());
@@ -79,6 +135,9 @@ pub fn load_from_bytes(bytes: &[u8]) -> Result<World, String> {
                 goalkeeping: r.goalkeeping,
             });
         }
+    }
+    if let Some(ss) = save.season {
+        restore_season(&mut world, ss);
     }
     Ok(world)
 }
@@ -135,6 +194,38 @@ mod tests {
             q.iter(&loaded).count()
         };
         assert_eq!(named_footballers, db.players.len());
+    }
+
+    #[test]
+    fn an_in_progress_season_survives_save_load() {
+        use crate::season::{play_due_fixtures, Season};
+        use sim_core::{build_daily_schedule, SimClock, TeamId};
+
+        let db = sample();
+        let mut world = load_world(&db);
+
+        // Start a league of all clubs and play a few weeks so the table + cursor are non-trivial.
+        let mut teams: Vec<u32> =
+            world.query_filtered::<&TeamId, With<Club>>().iter(&world).map(|t| t.0).collect();
+        teams.sort_unstable();
+        let today = world.resource::<SimClock>().date();
+        world.insert_resource(Season::new(teams, today, 1, 2025));
+        let mut sched = build_daily_schedule();
+        for _ in 0..30 {
+            sched.run(&mut world);
+            play_due_fixtures(&mut world);
+        }
+
+        let next_before = world.resource::<Season>().schedule.next_index();
+        let table_before = world.resource::<Season>().standings();
+        assert!(next_before > 0, "some matchdays should have been played");
+
+        let bytes = save_to_bytes(&world);
+        let loaded = load_from_bytes(&bytes).unwrap();
+
+        let season = loaded.get_resource::<Season>().expect("season restored");
+        assert_eq!(season.schedule.next_index(), next_before);
+        assert_eq!(season.standings(), table_before);
     }
 
     #[test]
