@@ -8,8 +8,10 @@
 
 pub mod attributes;
 pub mod bracket;
+pub mod database;
 pub mod engine;
 
 pub use attributes::{Seed, TennisPlayer};
+pub use database::{load_world, sample, Database, TennisDbAbility};
 pub use bracket::{gather_draw, simulate_tournament, BracketMatch, Tournament};
 pub use engine::{simulate_match, MatchOutcome, Player};

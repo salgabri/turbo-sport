@@ -10,6 +10,9 @@ sim-core = { path = "../../sim-core" }
 bevy_ecs.workspace = true
 rand.workspace = true
 rand_pcg.workspace = true
+# Starting-database ability record (de)serialization.
+serde = { workspace = true }
+serde_json.workspace = true
 
 [lints.clippy]
 all = "warn"
