@@ -3,10 +3,8 @@
 //!
 //! Run: `cargo run -p football --example gen_database [path]`  (default: database.json)
 
-use football::Database;
-
 fn main() {
-    let db = Database::sample();
+    let db = football::sample();
     db.validate().expect("sample database is valid");
 
     let path = std::env::args().nth(1).unwrap_or_else(|| "database.json".to_string());

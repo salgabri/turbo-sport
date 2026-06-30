@@ -58,6 +58,8 @@ dependencies = [
  "bevy_ecs",
  "rand",
  "rand_pcg",
+ "serde",
+ "serde_json",
  "sim-core",
 ]
 
@@ -779,6 +781,7 @@ dependencies = [
  "rand_pcg",
  "rayon",
  "serde",
+ "serde_json",
 ]
 
 [[package]]

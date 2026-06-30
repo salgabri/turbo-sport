@@ -18,7 +18,7 @@ pub mod season;
 
 pub use attributes::Footballer;
 pub use career::{generate_prospects, regen_youth};
-pub use database::{load_world, ClubRecord, Database, DbDate, DivisionRecord, PlayerRecord};
+pub use database::{load_world, sample, Database, FootballAbility, PlayerRecord};
 pub use engine::{simulate_match, Chance, Lineup, MatchResult, MATCH_MINUTES};
 pub use matchday::{gather_lineups, simulate_matchday, Fixture};
 pub use season::{play_due_fixtures, rank_division, Season, TeamRecord};

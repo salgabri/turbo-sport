@@ -7,11 +7,13 @@
 //! table. The contrast is what justified harvesting the scheduler but not the table.
 
 pub mod attributes;
+pub mod database;
 pub mod engine;
 pub mod matchday;
 pub mod season;
 
 pub use attributes::Baller;
+pub use database::{load_world, sample, BasketballAbility, Database};
 pub use engine::{simulate_game, GameResult, Roster};
 pub use matchday::{gather_rosters, simulate_matchday, Fixture};
 pub use season::{play_due_fixtures, Season, TeamRecord};

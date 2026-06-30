@@ -97,13 +97,13 @@ pub fn load_file(path: impl AsRef<std::path::Path>) -> std::io::Result<World> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::database::{load_world, Database};
+    use crate::database::{load_world, sample};
     use crate::gather_lineups;
     use sim_core::{Club, Name};
 
     #[test]
     fn full_game_round_trips_with_abilities() {
-        let db = Database::sample();
+        let db = sample();
         let mut world = load_world(&db);
 
         let clubs_before = world.query_filtered::<(), With<Club>>().iter(&world).count();
@@ -124,7 +124,7 @@ mod tests {
     #[test]
     fn a_specific_player_keeps_name_and_ability() {
         // Build a tiny world by hand and check one player's data exactly.
-        let db = Database::sample();
+        let db = sample();
         let world = load_world(&db);
         let bytes = save_to_bytes(&world);
         let mut loaded = load_from_bytes(&bytes).unwrap();

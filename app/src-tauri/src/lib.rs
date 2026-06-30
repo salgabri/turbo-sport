@@ -5,7 +5,6 @@
 use std::sync::Mutex;
 
 use bevy_ecs::prelude::World;
-use football::Database;
 use sim_core::{club_views, free_agents, squad, ClubView, PlayerView};
 use tauri::State;
 
@@ -20,7 +19,7 @@ fn starting_world() -> World {
     let db = std::env::var("TURBO_DB")
         .ok()
         .and_then(|path| football::database::load(path).ok())
-        .unwrap_or_else(Database::sample);
+        .unwrap_or_else(football::database::sample);
     football::load_world(&db)
 }
 

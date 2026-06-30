@@ -6,7 +6,7 @@ use football::Database;
 /// Return the built-in sample database to start editing from.
 #[tauri::command]
 fn load_sample() -> Database {
-    Database::sample()
+    football::database::sample()
 }
 
 /// Open a database from a JSON file.

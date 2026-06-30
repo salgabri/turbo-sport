@@ -15,6 +15,7 @@
 
 pub mod club;
 pub mod competition;
+pub mod database;
 pub mod economy;
 pub mod entity;
 pub mod league;
@@ -30,6 +31,7 @@ pub mod view;
 
 pub use club::{index_clubs, sync_squad_membership, Club, ClubBundle, ClubRegistry};
 pub use competition::{double_round_robin, schedule_weekly, single_round_robin};
+pub use database::{ClubRecord, Database, DbDate, DivisionRecord, PersonRecord};
 pub use economy::{Balance, Money, WeeklyIncome};
 pub use entity::{
     age_years, BirthDate, Condition, Contract, FreeAgent, Morale, Name, PersonBundle, Retired,
