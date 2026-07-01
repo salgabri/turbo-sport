@@ -8,16 +8,22 @@
       "port": 1420
     },
     {
-      "name": "football-preview",
+      "name": "basketball-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "apps/football", "run", "preview", "--", "--port", "4173", "--strictPort"],
-      "port": 4173
+      "runtimeArgs": ["--prefix", "apps/basketball", "run", "dev"],
+      "port": 1420
     },
     {
-      "name": "tennis-preview",
+      "name": "cycling-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "apps/tennis", "run", "preview", "--", "--port", "4174", "--strictPort"],
-      "port": 4174
+      "runtimeArgs": ["--prefix", "apps/cycling", "run", "dev"],
+      "port": 1420
+    },
+    {
+      "name": "tennis-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "apps/tennis", "run", "dev"],
+      "port": 1420
     }
   ]
 }

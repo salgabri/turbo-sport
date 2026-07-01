@@ -129,6 +129,27 @@ Cycling and tennis already surface their real attributes (climbing/sprint/TT/
 endurance; serve/return/baseline/mental) directly in the reskinned Roster/Draw
 screens, so no backend widening was needed for them to "fit the design".
 
+## Runtime verification (mock-IPC)
+
+All four apps were driven in a dev preview with a stubbed Tauri `invoke` and
+confirmed to render real-shaped data with no console errors:
+- football & basketball — Squad Attributes tab (OVR + per-attr heat cells),
+  position pills, footer aggregates, Profile attribute radar (8 / 6 axes),
+  correct per-sport currency (£ / $).
+- cycling — GC race standings populate after "Run the Tour" (gaps formatted).
+- tennis — bracket populates after "Play Tournament" (champion banner, rounds,
+  scores), accent `#ef5a5a`.
+
+## Deliberately not done (documented follow-ups)
+
+- **Extract `packages/ui`**: the design system is duplicated per app. Extraction
+  to a shared workspace package is deferred (cross-project Vite/SvelteKit
+  resolution is the risk; duplication builds reliably today).
+- **Cycling/tennis OVR/position/value + persistence**: not needed for design
+  parity (their real 4 attributes already show); a full management layer is a
+  larger future effort.
+- Self-hosted fonts (still `@import` from Google Fonts) — see below.
+
 ### Known follow-ups
 - Fonts are pulled from Google Fonts via `@import` in `tokens.css`. Self-host
   woff2 so core play has **no network dependency** (CLAUDE.md target) — polish.
