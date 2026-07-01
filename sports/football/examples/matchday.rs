@@ -24,10 +24,9 @@ fn main() {
             world.spawn((
                 TeamId(t),
                 Footballer {
-                    attacking: rate(base),
-                    defending: rate(base - 3),
-                    finishing: rate(base + 2),
-                    goalkeeping: rate(base - 5),
+                    pac: rate(base), sho: rate(base + 2), pas: rate(base), dri: rate(base),
+                    tec: rate(base + 2), def: rate(base - 3), phy: rate(base - 3), vis: rate(base),
+                    gk: rate(base - 3),
                 },
             ));
         }

@@ -190,7 +190,17 @@ mod tests {
             for _ in 0..11 {
                 world.spawn((
                     TeamId(t),
-                    Footballer { attacking: 55, defending: 55, finishing: 55, goalkeeping: 55 },
+                    Footballer {
+                        pac: 55,
+                        sho: 55,
+                        pas: 55,
+                        dri: 55,
+                        tec: 55,
+                        def: 55,
+                        phy: 55,
+                        vis: 55,
+                        gk: 55,
+                    },
                 ));
             }
         }

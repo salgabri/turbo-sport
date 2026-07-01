@@ -45,10 +45,9 @@ fn main() {
             let expiry_year = 2026 + (p % 3) as i32;
             world.spawn((
                 Footballer {
-                    attacking: rate(base),
-                    defending: rate(base - 2),
-                    finishing: rate(base + 1),
-                    goalkeeping: rate(base - 3),
+                    pac: rate(base), sho: rate(base + 1), pas: rate(base), dri: rate(base),
+                    tec: rate(base + 1), def: rate(base - 2), phy: rate(base - 2), vis: rate(base),
+                    gk: rate(base - 2),
                 },
                 BirthDate(Date::new(2025 - age, 6, 1)),
                 Morale(70),

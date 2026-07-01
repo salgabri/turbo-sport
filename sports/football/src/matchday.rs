@@ -24,14 +24,15 @@ pub struct Fixture {
 /// abilities. Ordered by team id (`BTreeMap`) for reproducible iteration.
 pub fn gather_lineups(world: &mut World) -> BTreeMap<u32, Lineup> {
     let mut acc: BTreeMap<u32, (f64, f64, f64, f64, u32)> = BTreeMap::new();
-    // Retired players keep their TeamId but are no longer available to play.
+    // Retired players keep their TeamId but are no longer available to play. Each player's
+    // eight attributes are folded into the four engine aggregates on the same 0..99 scale.
     let mut q = world.query_filtered::<(&TeamId, &Footballer), Without<Retired>>();
     for (team, f) in q.iter(world) {
         let e = acc.entry(team.0).or_insert((0.0, 0.0, 0.0, 0.0, 0));
-        e.0 += f64::from(f.attacking);
-        e.1 += f64::from(f.defending);
-        e.2 += f64::from(f.finishing);
-        e.3 += f64::from(f.goalkeeping);
+        e.0 += f.attack();
+        e.1 += f.defense();
+        e.2 += f.finishing();
+        e.3 += f.keeper();
         e.4 += 1;
     }
     acc.into_iter()
@@ -82,10 +83,12 @@ mod tests {
     #[test]
     fn gather_averages_player_abilities() {
         let mut world = World::new();
-        // Team 1: two players, attacking 60 and 80 -> mean 70.
-        world.spawn((TeamId(1), Footballer { attacking: 60, defending: 50, finishing: 50, goalkeeping: 50 }));
-        world.spawn((TeamId(1), Footballer { attacking: 80, defending: 50, finishing: 50, goalkeeping: 50 }));
-        world.spawn((TeamId(2), Footballer { attacking: 30, defending: 30, finishing: 30, goalkeeping: 30 }));
+        // attack() = mean(pac,dri,pas,tec,sho); flat players make it equal to that value.
+        let flat = |v: u8| Footballer { pac: v, sho: v, pas: v, dri: v, tec: v, def: v, phy: v, vis: v, gk: v };
+        // Team 1: two players at 60 and 80 -> team attack 70.
+        world.spawn((TeamId(1), flat(60)));
+        world.spawn((TeamId(1), flat(80)));
+        world.spawn((TeamId(2), flat(30)));
 
         let lineups = gather_lineups(&mut world);
         assert_eq!(lineups.len(), 2);

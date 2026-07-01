@@ -15,18 +15,72 @@ use crate::attributes::Footballer;
 use crate::season::{Season, TeamRecord};
 use bevy_ecs::prelude::*;
 use serde::{Deserialize, Serialize};
-use sim_core::{capture, entity_order, restore_indexed, DbDate, Matchday, SaveData, Schedule};
+use sim_core::{
+    capture, entity_order, restore_indexed, DbDate, Matchday, SaveData, SaveDataV2, Schedule,
+};
 use std::collections::BTreeMap;
 
 const MAGIC: [u8; 4] = *b"TSFB";
-const VERSION: u16 = 2;
+/// v3: `Footballer` widened from 4 aggregate ratings to the 8 outfield attributes + `gk`, and
+/// the embedded `core` moved to sim-core save v3. Old (v2) saves are read via [`GameSaveV2`].
+const VERSION: u16 = 3;
 
+/// The football ability column, v3 (eight attributes + keeper).
 #[derive(Serialize, Deserialize)]
 struct FootballerRecord {
+    pac: u8,
+    sho: u8,
+    pas: u8,
+    dri: u8,
+    tec: u8,
+    def: u8,
+    phy: u8,
+    vis: u8,
+    gk: u8,
+}
+
+impl FootballerRecord {
+    fn to_component(&self) -> Footballer {
+        Footballer {
+            pac: self.pac,
+            sho: self.sho,
+            pas: self.pas,
+            dri: self.dri,
+            tec: self.tec,
+            def: self.def,
+            phy: self.phy,
+            vis: self.vis,
+            gk: self.gk,
+        }
+    }
+}
+
+/// The football ability column as it stood at save v2 (four aggregate ratings). Kept frozen so
+/// old saves still load; mapped approximately onto the eight-attribute `Footballer`.
+/// (`Serialize` is only used to build old-format fixtures in tests.)
+#[derive(Serialize, Deserialize)]
+struct FootballerRecordV2 {
     attacking: u8,
     defending: u8,
     finishing: u8,
     goalkeeping: u8,
+}
+
+impl FootballerRecordV2 {
+    fn to_component(&self) -> Footballer {
+        // Best-effort spread of the old four ratings across the new eight attributes.
+        Footballer {
+            pac: self.attacking,
+            sho: self.finishing,
+            pas: self.attacking,
+            dri: self.attacking,
+            tec: self.finishing,
+            def: self.defending,
+            phy: self.defending,
+            vis: self.attacking,
+            gk: self.goalkeeping,
+        }
+    }
 }
 
 /// A matchday, mirrored for the save (the runtime `Matchday`'s `Date` isn't serde).
@@ -54,6 +108,15 @@ struct SeasonSave {
 struct GameSave {
     core: SaveData,
     footballers: Vec<Option<FootballerRecord>>,
+    season: Option<SeasonSave>,
+}
+
+/// The football save as it stood at v2: an old-shape `core` and the four-rating ability column.
+/// `SeasonSave` is unchanged between v2 and v3, so it is reused directly.
+#[derive(Serialize, Deserialize)]
+struct GameSaveV2 {
+    core: SaveDataV2,
+    footballers: Vec<Option<FootballerRecordV2>>,
     season: Option<SeasonSave>,
 }
 
@@ -98,10 +161,15 @@ pub fn save_to_bytes(world: &World) -> Vec<u8> {
         .iter()
         .map(|&e| {
             world.get::<Footballer>(e).map(|f| FootballerRecord {
-                attacking: f.attacking,
-                defending: f.defending,
-                finishing: f.finishing,
-                goalkeeping: f.goalkeeping,
+                pac: f.pac,
+                sho: f.sho,
+                pas: f.pas,
+                dri: f.dri,
+                tec: f.tec,
+                def: f.def,
+                phy: f.phy,
+                vis: f.vis,
+                gk: f.gk,
             })
         })
         .collect();
@@ -114,32 +182,50 @@ pub fn save_to_bytes(world: &World) -> Vec<u8> {
     out
 }
 
-/// Rebuild a football world from bytes written by [`save_to_bytes`].
+/// Assemble a world from a decoded (and forward-migrated) core snapshot, football ability
+/// column, and optional season. Shared by every version's decode path.
+fn build_world(
+    core: SaveData,
+    footballers: Vec<Option<Footballer>>,
+    season: Option<SeasonSave>,
+) -> World {
+    let (mut world, entities) = restore_indexed(&core);
+    for (i, rec) in footballers.into_iter().enumerate() {
+        if let Some(f) = rec {
+            world.entity_mut(entities[i]).insert(f);
+        }
+    }
+    if let Some(ss) = season {
+        restore_season(&mut world, ss);
+    }
+    world
+}
+
+/// Rebuild a football world from bytes written by [`save_to_bytes`]. Reads the current format
+/// and migrates older ones forward (v2 → v3: old core upgraded, four ratings spread onto the
+/// eight attributes).
 pub fn load_from_bytes(bytes: &[u8]) -> Result<World, String> {
     if bytes.len() < 6 || bytes[0..4] != MAGIC {
         return Err("not a football save (bad header)".to_string());
     }
     let version = u16::from_le_bytes([bytes[4], bytes[5]]);
-    if version != VERSION {
-        return Err(format!("unsupported football save version {version}"));
-    }
-
-    let save: GameSave = bincode::deserialize(&bytes[6..]).map_err(|e| e.to_string())?;
-    let (mut world, entities) = restore_indexed(&save.core);
-    for (i, rec) in save.footballers.iter().enumerate() {
-        if let Some(r) = rec {
-            world.entity_mut(entities[i]).insert(Footballer {
-                attacking: r.attacking,
-                defending: r.defending,
-                finishing: r.finishing,
-                goalkeeping: r.goalkeeping,
-            });
+    let payload = &bytes[6..];
+    match version {
+        VERSION => {
+            let save: GameSave = bincode::deserialize(payload).map_err(|e| e.to_string())?;
+            let footballers =
+                save.footballers.iter().map(|o| o.as_ref().map(FootballerRecord::to_component)).collect();
+            Ok(build_world(save.core, footballers, save.season))
         }
+        2 => {
+            let save: GameSaveV2 = bincode::deserialize(payload).map_err(|e| e.to_string())?;
+            let footballers =
+                save.footballers.iter().map(|o| o.as_ref().map(FootballerRecordV2::to_component)).collect();
+            Ok(build_world(save.core.into(), footballers, save.season))
+        }
+        v if v > VERSION => Err(format!("football save v{v} is newer than this build supports")),
+        v => Err(format!("unsupported football save version {v}")),
     }
-    if let Some(ss) = save.season {
-        restore_season(&mut world, ss);
-    }
-    Ok(world)
 }
 
 /// Write a football save to a file.
@@ -226,6 +312,59 @@ mod tests {
         let season = loaded.get_resource::<Season>().expect("season restored");
         assert_eq!(season.schedule.next_index(), next_before);
         assert_eq!(season.standings(), table_before);
+    }
+
+    #[test]
+    fn a_v2_football_save_migrates_to_v3() {
+        use sim_core::persistence::legacy::EntitySaveV2;
+        use sim_core::persistence::{ClockSave, DateSave};
+
+        // A minimal old-format save: one club, one player, one four-rating ability record.
+        let core = SaveDataV2 {
+            clock: ClockSave { date: DateSave { year: 2025, month: 7, day: 1 }, day_index: 0 },
+            seed: 0xDA7A,
+            entities: vec![
+                EntitySaveV2 {
+                    id: 0,
+                    name: Some("Old Club".into()),
+                    team_id: Some(0),
+                    balance: Some(1000),
+                    weekly_income: Some(100),
+                    squad_target: Some(2),
+                    is_club: true,
+                    ..Default::default()
+                },
+                EntitySaveV2 {
+                    id: 1,
+                    name: Some("Old Player".into()),
+                    team_id: Some(0),
+                    birth: Some(DateSave { year: 2000, month: 1, day: 1 }),
+                    morale: Some(70),
+                    ..Default::default()
+                },
+            ],
+        };
+        let old = GameSaveV2 {
+            core,
+            footballers: vec![
+                None,
+                Some(FootballerRecordV2 { attacking: 80, defending: 60, finishing: 75, goalkeeping: 20 }),
+            ],
+            season: None,
+        };
+        let mut bytes = Vec::new();
+        bytes.extend_from_slice(&MAGIC);
+        bytes.extend_from_slice(&2u16.to_le_bytes());
+        bytes.extend_from_slice(&bincode::serialize(&old).unwrap());
+
+        let mut world = load_from_bytes(&bytes).unwrap();
+        // The player's name survives and their four ratings were spread onto the eight attrs.
+        let mut q = world.query::<(&Name, &Footballer)>();
+        let (name, f) = q.iter(&world).next().expect("the migrated player exists");
+        assert_eq!(name.0, "Old Player");
+        assert_eq!(f.pac, 80); // attacking -> pac
+        assert_eq!(f.gk, 20); // goalkeeping -> gk
+        assert_eq!(f.def, 60); // defending -> def
     }
 
     #[test]

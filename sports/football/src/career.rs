@@ -14,9 +14,32 @@ use bevy_ecs::prelude::*;
 use rand::{Rng, SeedableRng};
 use rand_pcg::Pcg64Mcg;
 use sim_core::{
-    derive_seed, BirthDate, Condition, Date, FreeAgent, Morale, Retired, TeamId, WageDemand,
+    derive_seed, value_from, BirthDate, Condition, Date, FreeAgent, MarketValue, Morale,
+    PositionGroup, Rating, Retired, TeamId, WageDemand,
 };
 use std::collections::HashMap;
+
+/// Roll a deterministic youth player: eight attributes (40–65) + keeper, a position, and the
+/// derived rating/value the card needs. Returns the bundle-worthy components.
+fn roll_youth(rng: &mut Pcg64Mcg, age: i32) -> (Footballer, PositionGroup, Rating, MarketValue) {
+    let mut r = || rng.gen_range(40u8..=65);
+    let f = Footballer {
+        pac: r(),
+        sho: r(),
+        pas: r(),
+        dri: r(),
+        tec: r(),
+        def: r(),
+        phy: r(),
+        vis: r(),
+        gk: rng.gen_range(35u8..=60),
+    };
+    let position = rng.gen_range(0u8..4);
+    let overall = f.overall(position);
+    let potential = overall.saturating_add(rng.gen_range(6u8..=18)).min(99);
+    let value = value_from(overall, age.max(0) as u32);
+    (f, PositionGroup(position), Rating { overall, potential }, MarketValue(value))
+}
 
 /// Top every team up to `target` active (non-retired) players with newly generated youth.
 ///
@@ -51,13 +74,17 @@ pub fn regen_youth(
                 1 + rng.gen_range(0u8..12),
                 1 + rng.gen_range(0u8..28),
             );
-            let ability = Footballer {
-                attacking: rng.gen_range(40u8..=65),
-                defending: rng.gen_range(40u8..=65),
-                finishing: rng.gen_range(40u8..=65),
-                goalkeeping: rng.gen_range(40u8..=65),
-            };
-            world.spawn((TeamId(team), ability, BirthDate(birth), Morale(70), Condition::fit()));
+            let (ability, pos, rating, value) = roll_youth(&mut rng, age);
+            world.spawn((
+                TeamId(team),
+                ability,
+                pos,
+                rating,
+                value,
+                BirthDate(birth),
+                Morale(70),
+                Condition::fit(),
+            ));
         }
     }
 }
@@ -76,15 +103,13 @@ pub fn generate_prospects(world: &mut World, count: u32, world_seed: u64, season
             1 + rng.gen_range(0u8..12),
             1 + rng.gen_range(0u8..28),
         );
-        let ability = Footballer {
-            attacking: rng.gen_range(40u8..=65),
-            defending: rng.gen_range(40u8..=65),
-            finishing: rng.gen_range(40u8..=65),
-            goalkeeping: rng.gen_range(40u8..=65),
-        };
+        let (ability, pos, rating, value) = roll_youth(&mut rng, age);
         let demand = rng.gen_range(40u32..=120);
         world.spawn((
             ability,
+            pos,
+            rating,
+            value,
             BirthDate(birth),
             Morale(70),
             Condition::fit(),
@@ -143,7 +168,7 @@ mod tests {
             regen_youth(&mut world, &[0], 3, 7, 2025, Date::new(2026, 7, 1));
             let mut q = world.query::<&Footballer>();
             let mut abilities: Vec<(u8, u8, u8, u8)> =
-                q.iter(&world).map(|f| (f.attacking, f.defending, f.finishing, f.goalkeeping)).collect();
+                q.iter(&world).map(|f| (f.pac, f.def, f.sho, f.gk)).collect();
             abilities.sort_unstable();
             abilities
         };

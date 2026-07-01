@@ -30,10 +30,9 @@ fn main() {
             world.spawn((
                 TeamId(t),
                 Footballer {
-                    attacking: rate(base),
-                    defending: rate(base - 2),
-                    finishing: rate(base + 1),
-                    goalkeeping: rate(base - 3),
+                    pac: rate(base), sho: rate(base + 1), pas: rate(base), dri: rate(base),
+                    tec: rate(base + 1), def: rate(base - 2), phy: rate(base - 2), vis: rate(base),
+                    gk: rate(base - 2),
                 },
             ));
         }
