@@ -78,3 +78,25 @@ export type InboxItem = {
   time: string;
   unread: boolean;
 };
+
+// ---- Live 2D match playback (from the `next_match` command) ----
+
+export type Dot = { n: number; x: number; y: number };
+export type MatchSide = { name: string; crest: string; dots: Dot[] };
+export type PlayEvent = {
+  minute: number;
+  kind: string; // "goal" | "card"
+  side: number; // 0 home, 1 away
+  title: string;
+  sub: string;
+};
+export type StatLine = { label: string; home: number; away: number };
+export type MatchPlayback = {
+  home: MatchSide;
+  away: MatchSide;
+  final_home: number;
+  final_away: number;
+  minutes: number;
+  events: PlayEvent[];
+  stats: StatLine[];
+};

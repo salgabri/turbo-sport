@@ -14,10 +14,12 @@ pub mod database;
 pub mod engine;
 pub mod matchday;
 pub mod persistence;
+pub mod playback;
 pub mod season;
 pub mod view;
 
 pub use attributes::Footballer;
+pub use playback::{next_match_playback, simulate_match_playback, MatchPlayback};
 pub use view::{
     free_agents as free_agents_detailed, team_squad as team_squad_detailed, Attrs, SquadPlayer,
 };

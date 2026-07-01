@@ -150,6 +150,30 @@ confirmed to render real-shaped data with no console errors:
   larger future effort.
 - Self-hosted fonts (still `@import` from Google Fonts) — see below.
 
+## Live 2D match (football)
+
+The Match screen is now a real live experience, not a shell. The engine stays a
+pure `(lineups, rng) -> result`; a new `football::playback` module reads two real
+squads, runs that engine, and dresses the deterministic result into a
+`MatchPlayback` DTO: a 4-3-3 of pitch dots drawn from each side's best XI, a
+minute-ordered event feed with named scorers (weighted by shooting) plus a few
+bookings, and the six stat totals. All non-engine flavour (scorer, cards,
+corners/fouls) is drawn from a **separate** seeded stream keyed off the match
+seed, so it never perturbs the goal/xG sequence — same seed, same match.
+
+Tauri `next_match(team_id)` returns the managed club's next fixture (in-season) or
+a friendly, seeded deterministically. The front-end `Match.svelte` replays it
+against a client-side clock with play/pause and 1×/2×/5× speed: the pitch shows
+the dots + a drifting ball, the scoreboard/score update as goals pass, the stat
+bars ramp to their totals, and the feed fills minute-by-minute. Verified: football
+27 tests (incl. playback determinism + goals-match-score), clippy clean, app crate
+`cargo check` green, svelte-check 0/0, and a mock-IPC render (dots/stats/controls
+present, clock + ball animating; real-time playback needs a foreground window as
+the headless preview freezes background timers).
+
+Next for match: propagate to the basketball court + cycling climb / motorsport
+track variants; later, engine-driven ball/positions instead of procedural drift.
+
 ### Known follow-ups
 - Fonts are pulled from Google Fonts via `@import` in `tokens.css`. Self-host
   woff2 so core play has **no network dependency** (CLAUDE.md target) — polish.
