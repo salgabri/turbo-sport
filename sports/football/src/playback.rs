@@ -43,6 +43,9 @@ pub struct PlayEvent {
     /// "goal" | "shot" | "card".
     pub kind: String,
     pub side: u8,
+    /// Points this event adds to `side`'s score (a football goal is 1; a booking 0). The UI
+    /// sums this so the same replay logic serves sports whose events are worth 2 or 3.
+    pub points: u8,
     pub title: String,
     pub sub: String,
 }
@@ -224,6 +227,7 @@ pub fn simulate_match_playback(
             minute: c.minute,
             kind: "goal".into(),
             side,
+            points: 1,
             title: format!("GOAL · {scorer}"),
             sub: if c.home { "Home strike".into() } else { "Away strike".into() },
         });
@@ -246,6 +250,7 @@ pub fn simulate_match_playback(
             minute,
             kind: "card".into(),
             side: u8::from(!home_side),
+            points: 0,
             title: format!("Yellow card · {name}"),
             sub: "Late challenge".into(),
         });

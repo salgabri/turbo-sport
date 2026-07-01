@@ -25,6 +25,7 @@
 
   const minutes = $derived(playback?.minutes ?? 90);
   const ended = $derived(clock >= minutes);
+  const isCourt = $derived(theme.matchVariant === "court");
 
   function tick() {
     if (!playing || !playback) return;
@@ -57,8 +58,10 @@
   const shown = $derived(Math.floor(clock));
   const clockLabel = $derived(ended ? "FT" : `${shown}'`);
   const passed = $derived<PlayEvent[]>((playback?.events ?? []).filter((e) => e.minute <= clock));
-  const homeScore = $derived(passed.filter((e) => e.kind === "goal" && e.side === 0).length);
-  const awayScore = $derived(passed.filter((e) => e.kind === "goal" && e.side === 1).length);
+  const sideScore = (s: number) =>
+    passed.filter((e) => e.side === s).reduce((n, e) => n + (e.points ?? 0), 0);
+  const homeScore = $derived(sideScore(0));
+  const awayScore = $derived(sideScore(1));
   const feed = $derived([...passed].reverse());
 
   // Stats interpolate from 0 → final across the match.
@@ -129,12 +132,19 @@
     <!-- body: pitch + right rail -->
     <div class="body">
       <div class="pitch-wrap">
-        <div class="pitch">
-          <div class="pitch-box"></div>
-          <div class="pitch-mid"></div>
-          <div class="pitch-circle"></div>
-          <div class="pitch-goal left"></div>
-          <div class="pitch-goal right"></div>
+        <div class="field" class:court={isCourt}>
+          <div class="f-box"></div>
+          <div class="f-mid"></div>
+          <div class="f-circle"></div>
+          {#if isCourt}
+            <div class="key left"></div>
+            <div class="key right"></div>
+            <div class="hoop left"></div>
+            <div class="hoop right"></div>
+          {:else}
+            <div class="f-goal left"></div>
+            <div class="f-goal right"></div>
+          {/if}
           {#each playback.home.dots as d}
             <div style={dotStyle(d.x, d.y, true)}>{d.n}</div>
           {/each}
@@ -382,7 +392,7 @@
     min-width: 0;
     display: flex;
   }
-  .pitch {
+  .field {
     flex: 1;
     position: relative;
     border: 1px solid #234a30;
@@ -396,13 +406,20 @@
       #14351f 18.18%
     );
   }
-  .pitch-box {
+  .field.court {
+    border-color: #3a2f22;
+    background: #241c14;
+  }
+  .f-box {
     position: absolute;
     inset: 4%;
     border: 2px solid rgba(255, 255, 255, 0.16);
     border-radius: 3px;
   }
-  .pitch-mid {
+  .court .f-box {
+    border-color: rgba(242, 145, 61, 0.28);
+  }
+  .f-mid {
     position: absolute;
     left: 50%;
     top: 4%;
@@ -411,7 +428,10 @@
     background: rgba(255, 255, 255, 0.16);
     transform: translateX(-50%);
   }
-  .pitch-circle {
+  .court .f-mid {
+    background: rgba(242, 145, 61, 0.28);
+  }
+  .f-circle {
     position: absolute;
     left: 50%;
     top: 50%;
@@ -421,20 +441,57 @@
     border-radius: 50%;
     transform: translate(-50%, -50%);
   }
-  .pitch-goal {
+  .court .f-circle {
+    width: 16%;
+    padding-bottom: 16%;
+    border-color: rgba(242, 145, 61, 0.28);
+  }
+  .f-goal {
     position: absolute;
     top: 28%;
     bottom: 28%;
     width: 13%;
     border: 2px solid rgba(255, 255, 255, 0.14);
   }
-  .pitch-goal.left {
+  .f-goal.left {
     left: 4%;
     border-left: none;
   }
-  .pitch-goal.right {
+  .f-goal.right {
     right: 4%;
     border-right: none;
+  }
+  /* basketball court key + hoops */
+  .key {
+    position: absolute;
+    top: 33%;
+    bottom: 33%;
+    width: 15%;
+    border: 2px solid rgba(242, 145, 61, 0.22);
+  }
+  .key.left {
+    left: 4%;
+    border-left: none;
+  }
+  .key.right {
+    right: 4%;
+    border-right: none;
+  }
+  .hoop {
+    position: absolute;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(242, 145, 61, 0.5);
+    border-radius: 50%;
+  }
+  .hoop.left {
+    left: 5.5%;
+    transform: translate(-50%, -50%);
+  }
+  .hoop.right {
+    right: 5.5%;
+    transform: translate(50%, -50%);
   }
   .ball {
     position: absolute;

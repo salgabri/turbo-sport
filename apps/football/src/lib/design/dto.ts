@@ -85,8 +85,9 @@ export type Dot = { n: number; x: number; y: number };
 export type MatchSide = { name: string; crest: string; dots: Dot[] };
 export type PlayEvent = {
   minute: number;
-  kind: string; // "goal" | "card"
+  kind: string; // "goal" | "card" | "score" | "foul"
   side: number; // 0 home, 1 away
+  points: number; // score contribution (football goal = 1, basketball basket = 2/3)
   title: string;
   sub: string;
 };

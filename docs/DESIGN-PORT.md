@@ -171,8 +171,21 @@ bars ramp to their totals, and the feed fills minute-by-minute. Verified: footba
 present, clock + ball animating; real-time playback needs a foreground window as
 the headless preview freezes background timers).
 
-Next for match: propagate to the basketball court + cycling climb / motorsport
-track variants; later, engine-driven ball/positions instead of procedural drift.
+**Basketball live court** (done): the possession engine returns only a final score,
+so `basketball::playback` synthesises a deterministic scoring timeline (baskets of
+1/2/3 spread across 48 minutes, named scorers, 3-point rate scaling with outside
+shooting) that sums exactly to the engine's result — again on a separate seeded
+stream, engine untouched. It emits the **same `MatchPlayback` shape** as football,
+so the shared `Match.svelte` replays it after one change: the pitch/court is chosen
+by `theme.matchVariant`, and the scoreboard sums event `points` (a football goal is
+1; a basket is 2/3). Basketball uses a 5-man court formation, `#f2913d` accent, and
+basketball stat rows. Verified: basketball 14 tests (incl. scores-sum-to-final +
+determinism), clippy clean, app crate `cargo check` green, svelte-check 0/0, court
+render confirmed (5+5 dots, key/hoops, stats).
+
+Next for match: cycling climb (stage profile + on-the-road groups) and tennis
+(single-tie point timeline); later, engine-driven ball/positions instead of the
+procedural drift.
 
 ### Known follow-ups
 - Fonts are pulled from Google Fonts via `@import` in `tokens.css`. Self-host

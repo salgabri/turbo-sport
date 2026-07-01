@@ -39,6 +39,12 @@ fn market(limit: usize, state: State<AppState>) -> Vec<basketball::SquadPlayer> 
     basketball::free_agents_detailed(&mut state.world.lock().unwrap(), limit)
 }
 
+/// Build a replayable 2D playback of the managed team's next game (or a friendly).
+#[tauri::command]
+fn next_match(team_id: u32, state: State<AppState>) -> Option<basketball::MatchPlayback> {
+    basketball::next_match_playback(&mut state.world.lock().unwrap(), team_id)
+}
+
 #[tauri::command]
 fn current_date(state: State<AppState>) -> String {
     state.world.lock().unwrap().resource::<SimClock>().date().to_string()
@@ -145,6 +151,7 @@ pub fn run() {
             clubs,
             team_squad,
             market,
+            next_match,
             current_date,
             season_active,
             standings,

@@ -6,7 +6,7 @@
   import "$lib/design/tokens.css";
   import AppShell from "$lib/design/AppShell.svelte";
   import { BASKETBALL } from "$lib/design/theme";
-  import type { ClubView, PlayerView, StandingRow, Screen } from "$lib/design/dto";
+  import type { ClubView, PlayerView, StandingRow, Screen, MatchPlayback } from "$lib/design/dto";
 
   import Home from "$lib/screens/Home.svelte";
   import Squad from "$lib/screens/Squad.svelte";
@@ -30,6 +30,8 @@
 
   let screen = $state<Screen>("home");
   let selectedPlayer = $state<PlayerView | null>(null);
+  let matchPlayback = $state<MatchPlayback | null>(null);
+  let matchLoading = $state(false);
 
   const myClub = $derived(clubs.find((c) => c.team_id === myClubId) ?? null);
   const teamName = (id: number): string => clubs.find((c) => c.team_id === id)?.name ?? `Team ${id}`;
@@ -113,8 +115,21 @@
       }
     });
 
+  async function loadMatch() {
+    if (myClubId === null) return;
+    matchLoading = true;
+    try {
+      matchPlayback = await invoke<MatchPlayback | null>("next_match", { teamId: myClubId });
+    } catch (e) {
+      flash(`${e}`);
+    } finally {
+      matchLoading = false;
+    }
+  }
+
   function onNav(s: Screen) {
     screen = s;
+    if (s === "match" && !matchPlayback && !matchLoading) loadMatch();
   }
   function onSelectPlayer(p: PlayerView) {
     selectedPlayer = p;
@@ -164,6 +179,6 @@
   {:else if screen === "transfers"}
     <Transfers {theme} {market} club={myClub} />
   {:else if screen === "match"}
-    <Match {theme} />
+    <Match {theme} playback={matchPlayback} onReload={loadMatch} loading={matchLoading} />
   {/if}
 </AppShell>
