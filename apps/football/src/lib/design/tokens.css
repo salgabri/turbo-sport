@@ -1,0 +1,116 @@
+/* Turbo Sport — shared design tokens (from the Claude Design handoff).
+   Ported verbatim from the design comps' inline styles so the reskin is
+   pixel-faithful. Per-sport accent is overridden on :root by each app. */
+
+/* Fonts: Archivo (display/sans) + IBM Plex Mono (numbers/labels).
+   NOTE: pulled from Google Fonts for now; self-host woff2 in a later polish
+   pass so core play has no network dependency (see CLAUDE.md target). */
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+
+:root {
+  /* Surfaces */
+  --bg: #0b0d10;
+  --bg-titlebar: #0a0c0f;
+  --bg-sidebar: #0c0e12;
+  --bg-main: #0f1216;
+  --bg-topbar: #0e1115;
+  --panel: #14181e;
+  --panel-2: #12161c;
+  --panel-3: #13171d;
+  --raised: #1b212a;
+  --hover: #171c23;
+  --hover-2: #161b22;
+
+  /* Lines */
+  --line: #232a33;
+  --line-soft: #191e25;
+  --line-2: #171c22;
+  --line-3: #262d36;
+
+  /* Text */
+  --text: #e9edf1;
+  --text-2: #d4dae1;
+  --text-3: #c2cad3;
+  --muted: #9aa4b0;
+  --muted-2: #8b95a1;
+  --muted-3: #7a828d;
+  --dim: #6b7480;
+  --dim-2: #616b77;
+  --faint: #5a636e;
+
+  /* Semantic tones */
+  --up: #5ec98a;
+  --warn: #edb95e;
+  --down: #ef6b6b;
+  --neutral: #9aa4b0;
+  --info: #5aa9e6;
+  --danger: #ef5a5a;
+
+  /* Fonts */
+  --font-sans: "Archivo", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
+
+  /* Accent — default (football green); each app overrides these four. */
+  --accent: #4fd08a;
+  --accent-soft: #4fd08a22;
+  --accent-dim: #4fd08a14;
+  --accent-line: #4fd08a55;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a313b;
+  border-radius: 6px;
+  border: 3px solid #0f1216;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #39424e;
+}
+
+@keyframes tsPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+@keyframes tsToast {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Utility: mono tabular numerals for all the data-dense figures. */
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
