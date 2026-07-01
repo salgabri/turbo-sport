@@ -86,6 +86,30 @@ pub struct SquadTarget(pub u32);
 #[derive(Component, Clone, Copy, Debug)]
 pub struct WageDemand(pub u32);
 
+/// A person's nationality, as an authored code or name. Sport-neutral flavour carried for the
+/// UI (and future eligibility rules); no simulation system reads it today. Owns a `String`.
+#[derive(Component, Clone, Debug, PartialEq, Eq)]
+pub struct Nationality(pub String);
+
+/// An **opaque** position/role group index into the *sport's* own position table. `sim-core`
+/// deliberately does not name the meanings — football maps `0..=3` to GK/DEF/MID/FWD,
+/// basketball to G/F/C, cycling to GC/CLB/SPR/TT/DOM — the sport crate and the UI own that
+/// mapping. Kept here (not in a sport crate) because lineup/formation concepts are genuinely
+/// cross-sport, and it round-trips with the generic save.
+#[derive(Component, Clone, Copy, Debug, PartialEq, Eq)]
+pub struct PositionGroup(pub u8);
+
+/// A player's aggregate rating: current `overall` and peak `potential`, each 0..=99.
+///
+/// `sim-core` stores the *shape* but never computes it — each sport derives `overall` from its
+/// own attributes (position-weighted) at spawn, the same way it inserts its ability component.
+/// A later deterministic growth system can move `overall` toward `potential` with age.
+#[derive(Component, Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Rating {
+    pub overall: u8,
+    pub potential: u8,
+}
+
 /// The minimal set of components every simulated person shares. Sport crates spawn this
 /// alongside their own ability components; a [`Contract`] is added separately because a
 /// free agent is a person without one.

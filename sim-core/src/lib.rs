@@ -32,16 +32,16 @@ pub mod view;
 pub use club::{index_clubs, sync_squad_membership, Club, ClubBundle, ClubRegistry};
 pub use competition::{double_round_robin, schedule_weekly, single_round_robin};
 pub use database::{ClubRecord, Database, DbDate, DivisionRecord, PersonRecord};
-pub use economy::{Balance, Money, WeeklyIncome};
+pub use economy::{value_from, Balance, MarketValue, Money, WeeklyIncome};
 pub use entity::{
-    age_years, BirthDate, Condition, Contract, FreeAgent, Morale, Name, PersonBundle, Retired,
-    SquadTarget, TeamId, WageDemand,
+    age_years, BirthDate, Condition, Contract, FreeAgent, Morale, Name, Nationality, PersonBundle,
+    PositionGroup, Rating, Retired, SquadTarget, TeamId, WageDemand,
 };
 pub use league::{run_league_day, League, Matchday, Schedule};
 pub use lifecycle::RETIREMENT_AGE;
 pub use persistence::{
-    capture, entity_order, read_save, restore, restore_indexed, write_save, BincodeCodec,
-    SaveCodec, SaveData, SaveError, FORMAT_VERSION,
+    capture, entity_order, legacy, read_save, restore, restore_indexed, write_save, BincodeCodec,
+    SaveCodec, SaveData, SaveDataV2, SaveError, FORMAT_VERSION,
 };
 pub use pyramid::Pyramid;
 pub use rng::{derive_seed, SimSeed};

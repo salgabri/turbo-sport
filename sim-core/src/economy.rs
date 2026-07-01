@@ -25,6 +25,29 @@ pub struct Balance(pub Money);
 #[derive(Component, Clone, Copy, Debug)]
 pub struct WeeklyIncome(pub Money);
 
+/// A player's estimated market/transfer value. Derived deterministically from rating + age via
+/// [`value_from`] at spawn (no RNG, so it never depends on scheduling); a later system may
+/// revalue it as ratings and age move.
+#[derive(Component, Clone, Copy, Debug, PartialEq, Eq)]
+pub struct MarketValue(pub Money);
+
+/// A deterministic, illustrative market value from an `overall` rating (0..=99) and `age`.
+///
+/// The curve grows steeply with overall (cubic) and peaks in the low-to-mid twenties, tapering
+/// for older players — the usual shape in this genre. Pure: same inputs → same value, always.
+pub fn value_from(overall: u8, age: u32) -> Money {
+    let t = ((f64::from(overall) - 45.0).max(0.0)) / 45.0; // 0 at 45 ovr, 1 at 90 ovr
+    let base = t.powi(3) * 50_000_000.0;
+    let age_factor = match age {
+        0..=20 => 0.85,
+        21..=26 => 1.0,
+        27..=30 => 0.8,
+        31..=33 => 0.5,
+        _ => 0.25,
+    };
+    (base * age_factor) as Money
+}
+
 /// Days between paydays on the fixed calendar.
 const PAY_PERIOD_DAYS: u64 = 7;
 
