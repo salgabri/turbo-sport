@@ -135,7 +135,7 @@ mod tests {
             for _ in 0..10 {
                 world.spawn((
                     TeamId(t),
-                    Baller { offense: 55, defense: 55, three_point: 50, rebounding: 55 },
+                    Baller { ins: 55, out: 50, pm: 55, reb: 55, def: 55, ath: 55 },
                 ));
             }
         }

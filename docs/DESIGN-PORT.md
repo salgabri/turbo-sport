@@ -44,7 +44,7 @@ prototypes; we recreate the *visual output* in Svelte, not their structure.
 | 3 | Football backend: widen 4→8 attrs feeding the engine, OVR/position/value/nationality, save v3 | **DONE** |
 | 4 | Football Tauri rich DTO + wire Squad/Profile to real attrs/OVR/value | **DONE** |
 | 5 | Reskin basketball / cycling / tennis apps to the design (visual parity) | **DONE** |
-| 6 | Backend attribute parity for basketball/cycling/tennis + extract `packages/ui` | in progress |
+| 6 | Backend attribute parity: **basketball done**; cycling/tennis already show their real attrs; extract `packages/ui` | in progress |
 
 ## Phase 1 — what landed (football)
 
@@ -109,6 +109,25 @@ adapted `dto.ts`:
 
 Each verified independently: `svelte-check` 0 errors / 0 warnings and a clean `npm run build`.
 Shared UI is duplicated for now; extracting to `packages/ui` is Phase 6 cleanup.
+
+## Phase 6 — basketball backend attribute parity (done)
+
+Same widen-and-migrate pattern as football Phase 3/4, applied to basketball:
+`Baller` widened from four aggregate ratings to the six design attributes
+(ins/out/pm/reb/def/ath), folded into the engine's offense/defense/three_point/
+rebounding aggregates on the same 0..99 scale (tuning preserved); position-weighted
+`overall()`; `PositionGroup`/`Rating`/`MarketValue`/`Nationality` authored on load;
+`BasketballAbility` + sample regenerated with G/F/C positions and nationalities.
+Save bumped **TSBB v1 → v2** with a frozen `GameSaveV1` mirror (core `SaveDataV2`,
+four-rating column mapped onto the six attrs). A `view::team_squad`/`free_agents`
+detailed DTO carries the attrs + position label; the Tauri `team_squad`/`market`
+commands return it, and the (generic) reskinned Squad/Profile screens render the
+radar + heat cells + OVR automatically. Verified: cargo test (basketball 12,
+workspace green), clippy clean, app crate `cargo check` green, svelte-check 0/0.
+
+Cycling and tennis already surface their real attributes (climbing/sprint/TT/
+endurance; serve/return/baseline/mental) directly in the reskinned Roster/Draw
+screens, so no backend widening was needed for them to "fit the design".
 
 ### Known follow-ups
 - Fonts are pulled from Google Fonts via `@import` in `tokens.css`. Self-host

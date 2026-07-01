@@ -21,10 +21,10 @@ pub fn gather_rosters(world: &mut World) -> BTreeMap<u32, Roster> {
     let mut q = world.query::<(&TeamId, &Baller)>();
     for (team, b) in q.iter(world) {
         let e = acc.entry(team.0).or_insert((0.0, 0.0, 0.0, 0.0, 0));
-        e.0 += f64::from(b.offense);
-        e.1 += f64::from(b.defense);
-        e.2 += f64::from(b.three_point);
-        e.3 += f64::from(b.rebounding);
+        e.0 += b.offense();
+        e.1 += b.defense();
+        e.2 += b.three_point();
+        e.3 += b.rebounding();
         e.4 += 1;
     }
     acc.into_iter()
@@ -57,9 +57,11 @@ mod tests {
     #[test]
     fn gather_averages_player_abilities() {
         let mut world = World::new();
-        world.spawn((TeamId(1), Baller { offense: 60, defense: 50, three_point: 40, rebounding: 50 }));
-        world.spawn((TeamId(1), Baller { offense: 80, defense: 50, three_point: 60, rebounding: 50 }));
-        world.spawn((TeamId(2), Baller { offense: 30, defense: 30, three_point: 30, rebounding: 30 }));
+        // offense() = mean(ins,out,pm); flat players make it equal to that value.
+        let flat = |v: u8| Baller { ins: v, out: v, pm: v, reb: v, def: v, ath: v };
+        world.spawn((TeamId(1), flat(60)));
+        world.spawn((TeamId(1), flat(80)));
+        world.spawn((TeamId(2), flat(30)));
 
         let rosters = gather_rosters(&mut world);
         assert_eq!(rosters.len(), 2);

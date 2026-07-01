@@ -24,10 +24,12 @@ fn main() {
             world.spawn((
                 TeamId(t),
                 Baller {
-                    offense: rate(base),
-                    defense: rate(base - 1),
-                    three_point: rate(base - 4),
-                    rebounding: rate(base),
+                    ins: rate(base),
+                    out: rate(base - 4),
+                    pm: rate(base - 2),
+                    reb: rate(base),
+                    def: rate(base - 1),
+                    ath: rate(base),
                 },
             ));
         }

@@ -12,8 +12,12 @@ pub mod engine;
 pub mod matchday;
 pub mod persistence;
 pub mod season;
+pub mod view;
 
 pub use attributes::Baller;
+pub use view::{
+    free_agents as free_agents_detailed, team_squad as team_squad_detailed, Attrs, SquadPlayer,
+};
 pub use database::{load_world, sample, BasketballAbility, Database};
 pub use engine::{simulate_game, GameResult, Roster};
 pub use matchday::{gather_rosters, simulate_matchday, Fixture};
