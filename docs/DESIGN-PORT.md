@@ -43,8 +43,8 @@ prototypes; we recreate the *visual output* in Svelte, not their structure.
 | 2 | sim-core data model + save 2→3 (Nationality, PositionGroup, MarketValue, Rating; extend DTOs) | **DONE** |
 | 3 | Football backend: widen 4→8 attrs feeding the engine, OVR/position/value/nationality, save v3 | **DONE** |
 | 4 | Football Tauri rich DTO + wire Squad/Profile to real attrs/OVR/value | **DONE** |
-| 5 | Reskin basketball / cycling / tennis apps to the design (visual parity) | in progress |
-| 6 | Backend attribute parity for basketball/cycling/tennis + extract `packages/ui` | todo |
+| 5 | Reskin basketball / cycling / tennis apps to the design (visual parity) | **DONE** |
+| 6 | Backend attribute parity for basketball/cycling/tennis + extract `packages/ui` | in progress |
 
 ## Phase 1 — what landed (football)
 
@@ -91,6 +91,24 @@ Deferred out of Phase 2 to keep it bounded (do in a later slice): `SeasonTally` 
 > `SaveData`. Old football saves won't load until football bumps to v3 with a `GameSaveV2`
 > mirror (`core: sim_core::SaveDataV2`) — do this in the same bump that widens `Footballer`
 > 4→8, so football migrates once.
+
+## Phase 5 — what landed (basketball / cycling / tennis reskins)
+
+The football design foundation (`tokens.css`, `color.ts`, `Icon.svelte`, `AppShell.svelte`)
+was **duplicated** into each app (per-app `src/lib/design/`) with a sport `theme.ts` and
+adapted `dto.ts`:
+
+- **basketball** — full six-screen shell, theme `#f2913d`, positions G/F/C, court match
+  variant. Same command set as football; `StandingRow` adapted to basketball's win/loss
+  shape (W/L/Pct/PF/PA/Diff). Attributes tab/OVR are empty-state until Phase 6 authors
+  basketball attributes.
+- **cycling** — event app (`roster()` / `run_tour()`): shell + Home, Roster (derived
+  POS/OVR + CLM/SPR/TT/END heat), Race (GC race-standings variant). Nav Home/Roster/Race.
+- **tennis** — event app (`draw()` / `run_tournament()`): shell + Home, Draw (seeded, SRV/
+  RET/BAS/MEN heat), Bracket (rounds as columns, champion banner). Nav Home/Draw/Bracket.
+
+Each verified independently: `svelte-check` 0 errors / 0 warnings and a clean `npm run build`.
+Shared UI is duplicated for now; extracting to `packages/ui` is Phase 6 cleanup.
 
 ### Known follow-ups
 - Fonts are pulled from Google Fonts via `@import` in `tokens.css`. Self-host
