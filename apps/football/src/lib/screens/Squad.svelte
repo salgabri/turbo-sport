@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { moraleWord, fitColor, money, posPill } from "../design/color";
+  import { moraleWord, fitColor, tierColor, money, posPill } from "../design/color";
   import { FOOTBALL, posColor, type SportTheme } from "../design/theme";
   import type { PlayerView } from "../design/dto";
 
@@ -72,6 +72,18 @@
   const avgAge = $derived(
     ages.length ? (ages.reduce((s, a) => s + a, 0) / ages.length).toFixed(1) : DASH,
   );
+  const ovrs = $derived(
+    squad.map((p) => p.overall).filter((o): o is number => typeof o === "number"),
+  );
+  const avgOvr = $derived(
+    ovrs.length ? Math.round(ovrs.reduce((s, o) => s + o, 0) / ovrs.length).toString() : DASH,
+  );
+  const totalValue = $derived.by(() => {
+    const vals = squad
+      .map((p) => p.market_value)
+      .filter((v): v is number => typeof v === "number");
+    return vals.length ? money(vals.reduce((s, v) => s + v, 0), theme.currency) : DASH;
+  });
 
   // ---- cell style builders (mirror design comp cell() / column styles) ----
   const base = (width: string) =>
@@ -112,6 +124,24 @@
       style: base(width) + mono + `font-size:12px;color:${has ? "#8b95a1" : "#5a636e"}`,
     };
   }
+  function ovrCell(width: string, v: number | null | undefined) {
+    return {
+      text: typeof v === "number" ? String(v) : DASH,
+      style:
+        base(width) +
+        mono +
+        `font-weight:700;font-size:13.5px;color:${typeof v === "number" ? tierColor(v) : "#5a636e"}`,
+    };
+  }
+  function heatCell(width: string, v: number | null | undefined) {
+    return {
+      text: typeof v === "number" ? String(v) : DASH,
+      style:
+        base(width) +
+        mono +
+        `font-weight:600;font-size:12.5px;color:${typeof v === "number" ? tierColor(v) : "#5a636e"}`,
+    };
+  }
 
   // status word for the Overview "Status" column, from REAL bools
   function statusCell(width: string, p: PlayerView) {
@@ -143,6 +173,19 @@
         moneyCell("70px", p.wage),
         monoCell("72px", p.contract_until),
         statusCell("78px", p),
+      ];
+    }
+    if (activeTab === "attributes") {
+      const a = (p.attrs ?? {}) as Record<string, number>;
+      return [
+        ovrCell("50px", p.overall),
+        heatCell("46px", a.pac),
+        heatCell("46px", a.sho),
+        heatCell("46px", a.pas),
+        heatCell("46px", a.dri),
+        heatCell("46px", a.tec),
+        heatCell("46px", a.def),
+        heatCell("46px", a.phy),
       ];
     }
     // contract
@@ -217,10 +260,7 @@
         </div>
       </div>
 
-      {#if activeTab === "attributes"}
-        <div class="empty tall">Attributes arrive with the match-engine update.</div>
-      {:else}
-        {#each squad as p}
+      {#each squad as p}
           <div
             class="row"
             class:sel={selectedName != null && selectedName === p.name}
@@ -255,7 +295,6 @@
             </div>
           </div>
         {/each}
-      {/if}
     {/if}
   </div>
 
@@ -263,8 +302,8 @@
   <div class="footer">
     <span>SIZE <b>{count}</b></span>
     <span>AVG AGE <b>{avgAge}</b></span>
-    <span>AVG OVR <b>{DASH}</b></span>
-    <span>TOTAL VALUE <b>{DASH}</b></span>
+    <span>AVG OVR <b>{avgOvr}</b></span>
+    <span>TOTAL VALUE <b>{totalValue}</b></span>
     <span class="sel-lbl">SELECTED <b class="sel-name">{selectedName || "None"}</b></span>
   </div>
 </div>
@@ -472,9 +511,6 @@
     color: #5a636e;
     font-family: var(--font-mono);
     font-size: 13px;
-  }
-  .empty.tall {
-    padding: 60px 40px;
   }
 
   /* ---- footer ---- */

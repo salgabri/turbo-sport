@@ -15,6 +15,16 @@ pub const POS_DEF: u8 = 1;
 pub const POS_MID: u8 = 2;
 pub const POS_FWD: u8 = 3;
 
+/// The short label for a football position group index (the UI's position pill text).
+pub fn position_label(position: u8) -> &'static str {
+    match position {
+        POS_GK => "GK",
+        POS_DEF => "DEF",
+        POS_MID => "MID",
+        _ => "FWD",
+    }
+}
+
 /// A footballer's abilities, 0..=99 each — the eight outfield attributes shown on the
 /// player card (matching the design's radar) plus a dedicated `gk` used only by the engine
 /// for keeper strength (goalkeeping is not one of the eight outfield ratings).

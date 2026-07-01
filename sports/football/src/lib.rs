@@ -15,8 +15,12 @@ pub mod engine;
 pub mod matchday;
 pub mod persistence;
 pub mod season;
+pub mod view;
 
 pub use attributes::Footballer;
+pub use view::{
+    free_agents as free_agents_detailed, team_squad as team_squad_detailed, Attrs, SquadPlayer,
+};
 pub use career::{generate_prospects, regen_youth};
 pub use database::{load_world, sample, Database, FootballAbility, PlayerRecord};
 pub use engine::{simulate_match, Chance, Lineup, MatchResult, MATCH_MINUTES};

@@ -8,8 +8,8 @@ use bevy_ecs::prelude::*;
 use football::Season;
 use serde::Serialize;
 use sim_core::{
-    build_daily_schedule, club_views, free_agents, run_transfer_window, squad,
-    sync_squad_membership, Club, ClubView, PlayerView, SimClock, SimSeed, TeamId,
+    build_daily_schedule, club_views, run_transfer_window, sync_squad_membership, Club, ClubView,
+    SimClock, SimSeed, TeamId,
 };
 use tauri::State;
 
@@ -35,13 +35,13 @@ fn clubs(state: State<AppState>) -> Vec<ClubView> {
 }
 
 #[tauri::command]
-fn team_squad(team_id: u32, state: State<AppState>) -> Vec<PlayerView> {
-    squad(&mut state.world.lock().unwrap(), team_id)
+fn team_squad(team_id: u32, state: State<AppState>) -> Vec<football::SquadPlayer> {
+    football::team_squad_detailed(&mut state.world.lock().unwrap(), team_id)
 }
 
 #[tauri::command]
-fn market(limit: usize, state: State<AppState>) -> Vec<PlayerView> {
-    free_agents(&mut state.world.lock().unwrap(), limit)
+fn market(limit: usize, state: State<AppState>) -> Vec<football::SquadPlayer> {
+    football::free_agents_detailed(&mut state.world.lock().unwrap(), limit)
 }
 
 #[tauri::command]

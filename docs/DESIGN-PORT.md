@@ -42,9 +42,9 @@ prototypes; we recreate the *visual output* in Svelte, not their structure.
 | 1 | Shared design system + football reskin on current data | **DONE (football)** |
 | 2 | sim-core data model + save 2→3 (Nationality, PositionGroup, MarketValue, Rating; extend DTOs) | **DONE** |
 | 3 | Football backend: widen 4→8 attrs feeding the engine, OVR/position/value/nationality, save v3 | **DONE** |
-| 4 | Football Tauri rich DTO + wire Squad/Profile/Home to real attrs/OVR/value | todo |
-| 5 | Basketball to parity | todo |
-| 6 | Cycling + Tennis management/persistence layer (they have none today) + extract `packages/ui` | todo |
+| 4 | Football Tauri rich DTO + wire Squad/Profile to real attrs/OVR/value | **DONE** |
+| 5 | Reskin basketball / cycling / tennis apps to the design (visual parity) | in progress |
+| 6 | Backend attribute parity for basketball/cycling/tennis + extract `packages/ui` | todo |
 
 ## Phase 1 — what landed (football)
 
