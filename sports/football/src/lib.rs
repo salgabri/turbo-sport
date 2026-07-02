@@ -9,6 +9,7 @@
 //! a rayon-parallel matchday runner with deterministic per-match seeding.
 
 pub mod attributes;
+pub mod cards;
 pub mod career;
 pub mod database;
 pub mod engine;
@@ -23,6 +24,7 @@ pub mod train;
 pub mod view;
 
 pub use attributes::Footballer;
+pub use cards::{roll_match_cards, Cards, YELLOW_BAN};
 pub use injuries::{roll_match_injuries, severity};
 pub use morale::apply_match_morale;
 pub use playback::{

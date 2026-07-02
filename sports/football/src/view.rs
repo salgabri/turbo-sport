@@ -69,6 +69,8 @@ pub struct SquadPlayer {
     pub goals: Option<u16>,
     /// Days until recovered from an injury, if currently injured.
     pub injury_days: Option<u16>,
+    /// True if serving a suspension (banned from the next match).
+    pub suspended: bool,
 }
 
 fn row(world: &World, entity: Entity, today: sim_core::Date) -> SquadPlayer {
@@ -94,6 +96,7 @@ fn row(world: &World, entity: Entity, today: sim_core::Date) -> SquadPlayer {
         apps: e.get::<crate::tally::FootballTally>().map(|t| t.apps),
         goals: e.get::<crate::tally::FootballTally>().map(|t| t.goals),
         injury_days: e.get::<Condition>().map(|c| c.injury_days).filter(|&d| d > 0),
+        suspended: e.get::<crate::cards::Cards>().is_some_and(|c| c.ban > 0),
     }
 }
 

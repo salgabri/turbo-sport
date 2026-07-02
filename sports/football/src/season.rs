@@ -171,6 +171,8 @@ impl League for Season {
             crate::injuries::roll_match_injuries(world, h, a, inj_seed);
             // The result nudges dressing-room morale.
             crate::morale::apply_match_morale(world, h, a, res.home_goals, res.away_goals);
+            // Bookings & suspensions on their own stream.
+            crate::cards::roll_match_cards(world, h, a, sim_core::derive_seed(seed, &[0xCA]));
         }
     }
 }
