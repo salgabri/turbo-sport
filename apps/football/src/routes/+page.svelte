@@ -6,13 +6,14 @@
   import "$lib/design/tokens.css";
   import AppShell from "$lib/design/AppShell.svelte";
   import { FOOTBALL } from "$lib/design/theme";
-  import type { ClubView, PlayerView, StandingRow, Screen, MatchPlayback, BoardView } from "$lib/design/dto";
+  import type { ClubView, PlayerView, StandingRow, Screen, MatchPlayback, BoardView, SearchArgs } from "$lib/design/dto";
 
   import Home from "$lib/screens/Home.svelte";
   import Squad from "$lib/screens/Squad.svelte";
   import Profile from "$lib/screens/Profile.svelte";
   import Table from "$lib/screens/Table.svelte";
   import Transfers from "$lib/screens/Transfers.svelte";
+  import Search from "$lib/screens/Search.svelte";
   import Match from "$lib/screens/Match.svelte";
 
   const theme = FOOTBALL;
@@ -33,6 +34,8 @@
   let matchPlayback = $state<MatchPlayback | null>(null);
   let matchLoading = $state(false);
   let boardView = $state<BoardView | null>(null);
+  let searchResults = $state<PlayerView[]>([]);
+  let searchLoading = $state(false);
 
   const myClub = $derived(clubs.find((c) => c.team_id === myClubId) ?? null);
   const teamName = (id: number): string => clubs.find((c) => c.team_id === id)?.name ?? `Team ${id}`;
@@ -43,6 +46,7 @@
     profile: { title: "Player Profile", sub: "Attributes & development" },
     table: { title: "League Table", sub: "Standings" },
     transfers: { title: "Transfers", sub: "Market & shortlist" },
+    search: { title: "Player Search", sub: "Scout the world" },
     match: { title: "Match", sub: "Live centre" },
   };
 
@@ -129,6 +133,24 @@
     }
   }
 
+  async function runSearch(a: SearchArgs) {
+    searchLoading = true;
+    try {
+      searchResults = await invoke<PlayerView[]>("search", {
+        position: a.position,
+        minAge: a.minAge,
+        maxAge: a.maxAge,
+        minOverall: a.minOverall,
+        freeOnly: a.freeOnly,
+        limit: 100,
+      });
+    } catch (e) {
+      flash(`${e}`);
+    } finally {
+      searchLoading = false;
+    }
+  }
+
   function onNav(s: Screen) {
     screen = s;
     if (s === "match" && !matchPlayback && !matchLoading) loadMatch();
@@ -195,6 +217,8 @@
     <Table {theme} {standings} {teamName} myTeamId={myClubId} />
   {:else if screen === "transfers"}
     <Transfers {theme} {market} club={myClub} />
+  {:else if screen === "search"}
+    <Search {theme} results={searchResults} onSearch={runSearch} loading={searchLoading} {teamName} />
   {:else if screen === "match"}
     <Match {theme} playback={matchPlayback} onReload={loadMatch} loading={matchLoading} />
   {/if}

@@ -51,6 +51,7 @@
     { id: "profile", label: "Player", icon: "user" },
     { id: "table", label: "Table", icon: "trophy" },
     { id: "transfers", label: "Transfers", icon: "transfer" },
+    { id: "search", label: "Search", icon: "search" },
     { id: "match", label: "Match", icon: "play" },
   ];
 

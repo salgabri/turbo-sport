@@ -48,16 +48,19 @@ P0 there is no *game* to play between matches.
   deterministic (instructions are inputs, not RNG). Largest single item — split into
   formation+roles first, instructions+talks second, live changes third.
 
-### 3. Scouting, player search & recruitment  · status: **missing** · effort: **L**
-- **What:** (a) a **global player search** with rich filters + saved filters over the whole
-  world (age/pos/nation/value/wage/contract/attributes); (b) a **scouting** layer with
-  attribute **fog-of-war** — unscouted players show ranged/masked ratings that sharpen as scouts
-  watch them; (c) shortlists + scout reports (star ratings, potential estimate, fit).
+### 3. Scouting, player search & recruitment  · status: **v1 DONE (global search)** · effort: **L**
+- **Shipped:** a **global player search** — `football::search(world, SearchFilter, limit)` scans
+  the *whole* pool (every footballer, not just free agents), filters by position / age range /
+  min overall / free-agents-only, ranks best-overall first, and returns a bounded page (the
+  read-layer contract — fast even at 100k+, per the scale spike). Wired to a `search` command and
+  a new **Search** screen (filter bar + results table with position/OVR/age/value/club). Unit-
+  tested (filters + ranking).
+- **Follow-ups:** attribute **fog-of-war** (unscouted players show masked/ranged ratings that
+  sharpen as scouts watch them — a per-club `Knowledge` component + ranged view), a scout network
+  + assignments + reports (star ratings, potential estimate, fit), shortlists, and saved filters.
 - **Why:** recruitment is the core loop *and* the purest expression of our "Excel over a huge
   world" thesis — searching 100k players is where scale becomes fun.
-- **Fit:** search/filters are a `sim-core::view` read-layer feature (bounded, paginated —
-  already the contract). Fog-of-war = a per-club `Knowledge` component + a view that returns
-  ranges. Deterministic. **High strategic value** (compounds with world size).
+- **Fit:** the search is a bounded read-layer scan (already the DTO contract); deterministic.
 
 ### 4. Contract & transfer negotiation  · status: **partial** · effort: **L**
 - **What:** replace instant free-agent signing with real negotiation: bids/counter-bids on fee

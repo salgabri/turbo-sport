@@ -51,6 +51,23 @@ fn next_match(team_id: u32, state: State<AppState>) -> Option<football::MatchPla
     football::next_match_playback(&mut state.world.lock().unwrap(), team_id)
 }
 
+/// Search the whole player pool, best-overall first, capped. The "Excel over a huge world"
+/// surface — filters over every footballer, not just free agents.
+#[allow(clippy::too_many_arguments)]
+#[tauri::command]
+fn search(
+    position: Option<u8>,
+    min_age: u32,
+    max_age: u32,
+    min_overall: u8,
+    free_only: bool,
+    limit: usize,
+    state: State<AppState>,
+) -> Vec<football::SquadPlayer> {
+    let filter = football::SearchFilter { position, min_age, max_age, min_overall, free_only };
+    football::search(&mut state.world.lock().unwrap(), filter, limit.clamp(1, 200))
+}
+
 #[tauri::command]
 fn current_date(state: State<AppState>) -> String {
     state.world.lock().unwrap().resource::<SimClock>().date().to_string()
@@ -236,6 +253,7 @@ pub fn run() {
             team_squad,
             market,
             next_match,
+            search,
             current_date,
             season_active,
             standings,

@@ -67,7 +67,15 @@ export type StandingRow = {
 
 // ---- UI-side view models (composed in +page.svelte from the DTOs above) ----
 
-export type Screen = "home" | "squad" | "profile" | "table" | "transfers" | "match";
+export type Screen = "home" | "squad" | "profile" | "table" | "transfers" | "search" | "match";
+
+export type SearchArgs = {
+  position: number | null;
+  minAge: number;
+  maxAge: number;
+  minOverall: number;
+  freeOnly: boolean;
+};
 
 export type Kpi = {
   label: string;
