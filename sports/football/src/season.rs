@@ -169,6 +169,8 @@ impl League for Season {
             // Injuries roll on a distinct stream so they don't correlate with the scorers.
             let inj_seed = sim_core::derive_seed(seed, &[0xE]);
             crate::injuries::roll_match_injuries(world, h, a, inj_seed);
+            // The result nudges dressing-room morale.
+            crate::morale::apply_match_morale(world, h, a, res.home_goals, res.away_goals);
         }
     }
 }

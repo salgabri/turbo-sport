@@ -14,6 +14,7 @@ pub mod database;
 pub mod engine;
 pub mod matchday;
 pub mod injuries;
+pub mod morale;
 pub mod persistence;
 pub mod playback;
 pub mod season;
@@ -23,6 +24,7 @@ pub mod view;
 
 pub use attributes::Footballer;
 pub use injuries::{roll_match_injuries, severity};
+pub use morale::apply_match_morale;
 pub use playback::{
     next_fixture_info, next_match_playback, simulate_match_playback, FixtureInfo, MatchPlayback,
 };
