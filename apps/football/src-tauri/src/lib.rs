@@ -93,6 +93,11 @@ struct StandingRow {
 }
 
 #[tauri::command]
+fn top_scorers(limit: usize, state: State<AppState>) -> Vec<football::ScorerRow> {
+    football::top_scorers(&mut state.world.lock().unwrap(), limit.clamp(1, 50))
+}
+
+#[tauri::command]
 fn standings(state: State<AppState>) -> Vec<StandingRow> {
     let world = state.world.lock().unwrap();
     match world.get_resource::<Season>() {
@@ -257,6 +262,7 @@ pub fn run() {
             current_date,
             season_active,
             standings,
+            top_scorers,
             board,
             start_season,
             advance,

@@ -67,6 +67,8 @@ pub struct SquadPlayer {
     /// Season appearances / goals so far (present once the player has featured).
     pub apps: Option<u16>,
     pub goals: Option<u16>,
+    /// Days until recovered from an injury, if currently injured.
+    pub injury_days: Option<u16>,
 }
 
 fn row(world: &World, entity: Entity, today: sim_core::Date) -> SquadPlayer {
@@ -91,6 +93,7 @@ fn row(world: &World, entity: Entity, today: sim_core::Date) -> SquadPlayer {
         attrs: e.get::<Footballer>().map(Attrs::from),
         apps: e.get::<crate::tally::FootballTally>().map(|t| t.apps),
         goals: e.get::<crate::tally::FootballTally>().map(|t| t.goals),
+        injury_days: e.get::<Condition>().map(|c| c.injury_days).filter(|&d| d > 0),
     }
 }
 
@@ -115,6 +118,37 @@ pub fn free_agents(world: &mut World, limit: usize) -> Vec<SquadPlayer> {
         q.iter(world).take(limit).collect()
     };
     ids.into_iter().map(|e| row(world, e, today)).collect()
+}
+
+/// A row of the top-scorers chart.
+#[derive(Serialize, Clone, Debug)]
+pub struct ScorerRow {
+    pub name: Option<String>,
+    pub team_id: Option<u32>,
+    pub goals: u16,
+    pub apps: u16,
+}
+
+/// The league's leading scorers this season, most goals first (ties broken by fewer
+/// appearances, then name), capped at `limit`. Reads the accumulated [`crate::tally`].
+pub fn top_scorers(world: &mut World, limit: usize) -> Vec<ScorerRow> {
+    let mut v: Vec<ScorerRow> = {
+        let mut q = world.query::<(&Name, Option<&TeamId>, &crate::tally::FootballTally)>();
+        q.iter(world)
+            .filter(|(_, _, t)| t.goals > 0)
+            .map(|(n, team, t)| ScorerRow {
+                name: Some(n.0.clone()),
+                team_id: team.map(|x| x.0),
+                goals: t.goals,
+                apps: t.apps,
+            })
+            .collect()
+    };
+    v.sort_by(|a, b| {
+        b.goals.cmp(&a.goals).then(a.apps.cmp(&b.apps)).then(a.name.cmp(&b.name))
+    });
+    v.truncate(limit);
+    v
 }
 
 /// Filters for [`search`]. `None`/`0`/`false` mean "don't constrain".

@@ -42,6 +42,7 @@ export type PlayerView = {
   captain?: boolean;
   suspended?: boolean;
   signed?: string | null;
+  injury_days?: number | null;
 };
 
 export type BoardView = {
@@ -50,6 +51,13 @@ export type BoardView = {
   current_pos: number | null;
   confidence: string;
   on_track: boolean;
+};
+
+export type ScorerRow = {
+  name: string | null;
+  team_id: number | null;
+  goals: number;
+  apps: number;
 };
 
 export type StandingRow = {

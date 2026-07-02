@@ -106,11 +106,17 @@ P0 there is no *game* to play between matches.
 
 ## P1 — depth that rounds out realism
 
-### 8. Injuries & suspensions  · status: **partial** · effort: **M**
-- **What:** injury *types/severity/recovery time* (we only have a boolean flag + fitness) with a
-  medical/physio influence on risk & recovery; cards accumulating into suspensions.
-- **Why:** injuries drive squad-depth decisions; a flag isn't enough. **Fit:** extend
-  `Condition` + a deterministic injury roll seeded per player-day; sport tracks cards.
+### 8. Injuries & suspensions  · status: **v1 DONE (match injuries)** · effort: **M**
+- **Shipped (football):** `football::injuries::roll_match_injuries` — each matchday the ~16
+  players who featured for each side carry a small injury chance drawn from a stream seeded off
+  the fixture coordinates (reproducible), which sets a recovery time (4–28 days → Minor/Moderate/
+  Serious via `severity()`) and drops fitness; sim-core's `recover_condition` heals it daily. The
+  squad DTO carries `injury_days`; the Squad Status column shows "Nd out". Unit-tested
+  (deterministic + bounded).
+- **Follow-ups:** cards → suspensions, injury *types* (hamstring/knock/…), a medical/physio staff
+  influence on risk & recovery, and injury news in the inbox (#13).
+- **Why:** injuries drive squad-depth decisions; a flag isn't enough. **Fit:** extends the
+  existing `Condition`; deterministic roll in the season play path (like the tally).
 
 ### 9. Finances depth  · status: **partial** · effort: **M/L**
 - **What:** revenue streams (sponsors, TV/prize money, gate/attendance tied to stadium &

@@ -164,7 +164,7 @@
       t = "Retired";
       c = "#8b95a1";
     } else if (p.injured) {
-      t = "Injured";
+      t = typeof p.injury_days === "number" && p.injury_days > 0 ? `${p.injury_days}d out` : "Injured";
       c = "#ef6b6b";
     } else if (p.suspended) {
       t = "Suspended";

@@ -137,6 +137,9 @@ impl League for Season {
             let seed =
                 sim_core::derive_seed(self.world_seed, &[u64::from(self.season_id), index as u64, k as u64]);
             crate::tally::credit_match(world, h, a, res.home_goals, res.away_goals, seed);
+            // Injuries roll on a distinct stream so they don't correlate with the scorers.
+            let inj_seed = sim_core::derive_seed(seed, &[0xE]);
+            crate::injuries::roll_match_injuries(world, h, a, inj_seed);
         }
     }
 }

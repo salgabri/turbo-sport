@@ -1,17 +1,19 @@
 <script lang="ts">
   import { FOOTBALL, type SportTheme } from "../design/theme";
-  import type { StandingRow } from "../design/dto";
+  import type { StandingRow, ScorerRow } from "../design/dto";
 
   let {
     theme,
     standings,
     teamName,
     myTeamId,
+    scorers = [],
   }: {
     theme: SportTheme;
     standings: StandingRow[];
     teamName: (id: number) => string;
     myTeamId: number | null;
+    scorers?: ScorerRow[];
   } = $props();
 
   // Playoff-zone blue (design 481 / 496).
@@ -131,6 +133,28 @@
         </div>
       </div>
     </section>
+
+    {#if scorers.length > 0}
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <div class="title">Top Scorers</div>
+            <div class="sub">this season</div>
+          </div>
+        </div>
+        {#each scorers as s, i}
+          <div class="srow">
+            <span class="srank">{i + 1}</span>
+            <div class="splayer">
+              <div class="sname">{s.name ?? "—"}</div>
+              <div class="steam">{s.team_id != null ? teamName(s.team_id) : "—"}</div>
+            </div>
+            <span class="sapps">{s.apps} apps</span>
+            <span class="sgoals">{s.goals}</span>
+          </div>
+        {/each}
+      </section>
+    {/if}
   </div>
 {/if}
 
@@ -274,5 +298,49 @@
     font-family: var(--font-mono);
     font-size: 12.5px;
     color: var(--text-3);
+  }
+
+  /* top scorers */
+  .srow {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 9px 16px;
+    border-bottom: 1px solid #171c22;
+  }
+  .srank {
+    width: 20px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: #616b77;
+    text-align: center;
+  }
+  .splayer {
+    flex: 1;
+    min-width: 0;
+  }
+  .sname {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .steam {
+    font-size: 11px;
+    color: #6b7480;
+    font-family: var(--font-mono);
+  }
+  .sapps {
+    font-size: 11px;
+    color: #7a828d;
+    font-family: var(--font-mono);
+  }
+  .sgoals {
+    width: 40px;
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
   }
 </style>
