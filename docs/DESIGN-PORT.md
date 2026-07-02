@@ -197,9 +197,19 @@ Verified: cycling 9 + tennis 11 tests (determinism + consistency), clippy clean,
 both app crates `cargo check` green, svelte-check 0/0, and mock renders confirm the
 climb profile + rider gaps and the tennis scoreboard/set-grid/feed.
 
-**All four sports now have live 2D experiences.** Later: engine-driven ball/positions
-(football/basketball) instead of procedural drift; wire the live match into the
-season loop so watching a game records its result.
+**All four sports now have live 2D experiences.**
+
+**Season-consistent live match (football + basketball):** when a season is running,
+`next_match` seeds the watched game with the *exact* per-fixture stream the season
+uses (`derive_seed(derive_seed(world_seed, [season_id, matchday]), [k])`) and
+aggregates the lineup/roster identically to the season driver — so the scoreline you
+watch is the one that gets recorded in the table when you advance past that matchday.
+Tested with `watched_next_match_matches_the_season_result` on both sports. (Discovered
++ fixed a matching subtlety: basketball's `gather_rosters` counts retired players, so
+the playback roster must too.)
+
+Later: actually advancing the season *from* the match screen (play → record → next);
+engine-driven ball/positions instead of procedural drift.
 
 ### Known follow-ups
 - Fonts are pulled from Google Fonts via `@import` in `tokens.css`. Self-host

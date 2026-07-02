@@ -103,8 +103,10 @@ fn team_players(world: &mut World, team_id: u32) -> Vec<PlayerLite> {
 }
 
 fn roster_of(world: &mut World, team_id: u32) -> Roster {
+    // Aggregate exactly as `gather_rosters` does (no Retired filter) so a watched game's score
+    // matches the one the season records for the same fixture.
     let mut acc = (0.0, 0.0, 0.0, 0.0, 0u32);
-    let mut q = world.query_filtered::<(&TeamId, &Baller), Without<Retired>>();
+    let mut q = world.query::<(&TeamId, &Baller)>();
     for (t, b) in q.iter(world) {
         if t.0 != team_id {
             continue;
@@ -264,10 +266,11 @@ pub fn simulate_match_playback(
 
 /// Build a playback for a team's next opponent: the in-progress `Season`'s next unplayed fixture
 /// if any, otherwise a friendly against the lowest other club id.
+///
+/// In-season the game is seeded exactly as the season seeds that fixture, so the score you watch
+/// is the one the standings record.
 pub fn next_match_playback(world: &mut World, team_id: u32) -> Option<MatchPlayback> {
-    let world_seed = world.get_resource::<sim_core::SimSeed>().map_or(0, |s| s.0);
-    let (home, away, coord) = next_fixture(world, team_id)?;
-    let seed = derive_seed(world_seed, &[u64::from(home), u64::from(away), coord, 0xB]);
+    let (home, away, seed) = next_fixture(world, team_id)?;
     Some(simulate_match_playback(world, home, away, seed))
 }
 
@@ -279,18 +282,22 @@ fn next_fixture(world: &mut World, team_id: u32) -> Option<(u32, u32, u64)> {
             if md.played {
                 continue;
             }
-            if let Some(&(h, a)) = md.fixtures.iter().find(|&&(h, a)| h == team_id || a == team_id) {
-                return Some((h, a, i as u64));
+            if let Some(k) = md.fixtures.iter().position(|&(h, a)| h == team_id || a == team_id) {
+                let (h, a) = md.fixtures[k];
+                let base =
+                    derive_seed(season.world_seed, &[u64::from(season.season_id), i as u64]);
+                return Some((h, a, derive_seed(base, &[k as u64])));
             }
         }
     }
+    let world_seed = world.get_resource::<sim_core::SimSeed>().map_or(0, |s| s.0);
     let mut clubs: Vec<u32> = {
         let mut q = world.query_filtered::<&TeamId, With<Club>>();
         q.iter(world).map(|t| t.0).collect()
     };
     clubs.sort_unstable();
     let opp = clubs.into_iter().find(|&c| c != team_id)?;
-    Some((team_id, opp, 0))
+    Some((team_id, opp, derive_seed(world_seed, &[u64::from(team_id), u64::from(opp), 0xB])))
 }
 
 #[cfg(test)]
@@ -324,5 +331,49 @@ mod tests {
             simulate_match_playback(&mut world, h, a, 9),
             simulate_match_playback(&mut world, h, a, 9)
         );
+    }
+
+    #[test]
+    fn watched_next_game_matches_the_season_result() {
+        use crate::matchday::{gather_rosters, simulate_matchday, Fixture};
+        use crate::season::Season;
+        use sim_core::{SimClock, TeamId};
+
+        let db = sample();
+        let mut world = load_world(&db);
+        let mut teams: Vec<u32> =
+            world.query_filtered::<&TeamId, With<Club>>().iter(&world).map(|t| t.0).collect();
+        teams.sort_unstable();
+        let today = world.resource::<SimClock>().date();
+        let wseed = world.get_resource::<sim_core::SimSeed>().map_or(0, |s| s.0);
+        world.insert_resource(Season::new(teams.clone(), today, wseed, 2025));
+
+        let team = teams[0];
+        let (md_index, fixtures, k) = {
+            let s = world.resource::<Season>();
+            let mut found = None;
+            for i in s.schedule.next_index()..s.schedule.len() {
+                let md = s.schedule.matchday(i);
+                if let Some(k) = md.fixtures.iter().position(|&(h, a)| h == team || a == team) {
+                    found = Some((i, md.fixtures.clone(), k));
+                    break;
+                }
+            }
+            found.expect("team has a fixture")
+        };
+        let (sid, seed_world) = {
+            let s = world.resource::<Season>();
+            (s.season_id, s.world_seed)
+        };
+        let rosters = gather_rosters(&mut world);
+        let fx: Vec<Fixture> = fixtures
+            .iter()
+            .map(|&(h, a)| Fixture { home: rosters[&h], away: rosters[&a] })
+            .collect();
+        let recorded = simulate_matchday(&fx, seed_world, sid, md_index as u32)[k];
+
+        let pb = next_match_playback(&mut world, team).expect("a fixture playback");
+        assert_eq!(u16::from(pb.final_home), recorded.home_points);
+        assert_eq!(u16::from(pb.final_away), recorded.away_points);
     }
 }
