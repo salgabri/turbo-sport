@@ -46,7 +46,13 @@ pub struct Season {
     pub table: BTreeMap<u32, TeamRecord>,
     pub world_seed: u64,
     pub season_id: u32,
+    /// Recent results per team, oldest→newest, capped at [`FORM_LEN`]. Runtime-only (rebuilt as
+    /// matches play), so it is deliberately *not* part of the save — no format bump needed.
+    pub form: BTreeMap<u32, Vec<char>>,
 }
+
+/// How many recent results the form string keeps.
+pub const FORM_LEN: usize = 5;
 
 impl Season {
     /// Build a season: a double round-robin, one matchday per week from `start`. The
@@ -54,7 +60,22 @@ impl Season {
     pub fn new(teams: Vec<u32>, start: Date, world_seed: u64, season_id: u32) -> Self {
         let schedule = Schedule::round_robin(&teams, start);
         let table = teams.iter().map(|&t| (t, TeamRecord::default())).collect();
-        Season { teams, schedule, table, world_seed, season_id }
+        let form = teams.iter().map(|&t| (t, Vec::new())).collect();
+        Season { teams, schedule, table, world_seed, season_id, form }
+    }
+
+    /// Push one result (`'W'`/`'D'`/`'L'`) onto a team's form, keeping the last [`FORM_LEN`].
+    pub fn push_form(&mut self, team: u32, result: char) {
+        let f = self.form.entry(team).or_default();
+        f.push(result);
+        if f.len() > FORM_LEN {
+            f.remove(0);
+        }
+    }
+
+    /// A team's recent form, oldest→newest.
+    pub fn form_of(&self, team: u32) -> Vec<char> {
+        self.form.get(&team).cloned().unwrap_or_default()
     }
 
     pub fn is_complete(&self) -> bool {
@@ -132,6 +153,14 @@ impl League for Season {
         for (k, res) in results.iter().enumerate() {
             let (h, a) = fixtures[k];
             record_result(&mut self.table, h, a, res.home_goals, res.away_goals);
+            // Recent form (last five), from each side's perspective.
+            let (hc, ac) = match res.home_goals.cmp(&res.away_goals) {
+                std::cmp::Ordering::Greater => ('W', 'L'),
+                std::cmp::Ordering::Equal => ('D', 'D'),
+                std::cmp::Ordering::Less => ('L', 'W'),
+            };
+            self.push_form(h, hc);
+            self.push_form(a, ac);
             // Attribute the result to players' season tallies (apps + goals), seeded off the
             // same fixture coordinates so the stat lines are as reproducible as the scoreline.
             let seed =
@@ -240,6 +269,31 @@ mod tests {
         let draws: u32 = season.standings().iter().map(|(_, r)| r.drawn).sum::<u32>() / 2;
         assert_eq!(total_points, 3 * (total_games - draws) + 2 * draws);
         assert!(season.champion().is_some());
+    }
+
+    #[test]
+    fn form_records_recent_results_capped_at_five() {
+        let mut s = Season::new((0..2).collect(), Date::new(2025, 8, 8), 1, 2025);
+        for r in ['W', 'W', 'D', 'L', 'W', 'L', 'D'] {
+            s.push_form(0, r);
+        }
+        let f = s.form_of(0);
+        assert_eq!(f.len(), FORM_LEN);
+        assert_eq!(f, vec!['D', 'L', 'W', 'L', 'D']); // oldest two dropped
+    }
+
+    #[test]
+    fn a_played_season_populates_form() {
+        let teams = 4;
+        let mut world = league_world(teams);
+        world.insert_resource(Season::new((0..teams).collect(), Date::new(2025, 8, 8), 0xABC, 2025));
+        let mut daily = build_daily_schedule();
+        for _ in 0..60 {
+            daily.run(&mut world);
+            play_due_fixtures(&mut world);
+        }
+        let season = world.resource::<Season>();
+        assert!(season.teams.iter().all(|&t| !season.form_of(t).is_empty()));
     }
 
     #[test]

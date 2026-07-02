@@ -90,6 +90,8 @@ struct StandingRow {
     goals_against: u32,
     goal_difference: i32,
     points: u32,
+    /// Recent form, oldest→newest, as single-char strings ("W"/"D"/"L").
+    form: Vec<String>,
 }
 
 #[tauri::command]
@@ -114,6 +116,7 @@ fn standings(state: State<AppState>) -> Vec<StandingRow> {
                 goals_against: r.goals_against,
                 goal_difference: r.goal_difference(),
                 points: r.points,
+                form: season.form_of(team_id).into_iter().map(String::from).collect(),
             })
             .collect(),
         None => Vec::new(),

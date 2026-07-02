@@ -145,12 +145,15 @@ fn restore_season(world: &mut World, ss: SeasonSave) {
         .map(|m| Matchday { date: m.date.to_date(), fixtures: m.fixtures, played: m.played })
         .collect();
     let table: BTreeMap<u32, TeamRecord> = ss.table.into_iter().collect();
+    // Form is runtime-only (not saved); it rebuilds as further matches play.
+    let form = ss.teams.iter().map(|&t| (t, Vec::new())).collect();
     world.insert_resource(Season {
         teams: ss.teams,
         schedule: Schedule::from_parts(matchdays, ss.next),
         table,
         world_seed: ss.world_seed,
         season_id: ss.season_id,
+        form,
     });
 }
 

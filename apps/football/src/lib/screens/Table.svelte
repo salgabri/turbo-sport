@@ -1,5 +1,6 @@
 <script lang="ts">
   import { FOOTBALL, type SportTheme } from "../design/theme";
+  import { formChip } from "../design/color";
   import type { StandingRow, ScorerRow } from "../design/dto";
 
   let {
@@ -66,6 +67,7 @@
         dotColor: zoneDot(pos),
         club: teamName(r.team_id),
         cells,
+        form: (r.form ?? []).map((c) => ({ c, ...formChip(c) })),
       };
     }),
   );
@@ -105,6 +107,7 @@
             {#each COLS as c}
               <span class="ch-num" style="width:{c.w}">{c.l}</span>
             {/each}
+            <span class="ch-form">FORM</span>
           </div>
 
           <!-- Rows (design 492-504) -->
@@ -128,6 +131,11 @@
                     : ''}">{cell.text}</span
                 >
               {/each}
+              <span class="form">
+                {#each r.form as f}
+                  <span class="chip" style="background:{f.bg};color:{f.fg}">{f.c}</span>
+                {/each}
+              </span>
             </div>
           {/each}
         </div>
@@ -255,6 +263,30 @@
     font-size: 9.5px;
     color: #616b77;
     font-family: var(--font-mono);
+  }
+  .ch-form {
+    width: 118px;
+    text-align: center;
+    font-size: 9.5px;
+    color: #616b77;
+    font-family: var(--font-mono);
+    letter-spacing: 0.05em;
+  }
+  .form {
+    width: 118px;
+    display: flex;
+    gap: 3px;
+    justify-content: center;
+  }
+  .chip {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 700;
   }
 
   .row {
