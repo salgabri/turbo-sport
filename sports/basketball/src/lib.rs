@@ -11,6 +11,7 @@ pub mod database;
 pub mod engine;
 pub mod injuries;
 pub mod matchday;
+pub mod morale;
 pub mod persistence;
 pub mod playback;
 pub mod season;
@@ -19,6 +20,7 @@ pub mod view;
 
 pub use attributes::Baller;
 pub use injuries::{roll_game_injuries, severity};
+pub use morale::apply_game_morale;
 pub use playback::{next_match_playback, simulate_match_playback, MatchPlayback};
 pub use tally::{credit_game, reset_tallies, BasketballTally};
 pub use view::{

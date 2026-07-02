@@ -141,6 +141,7 @@ impl League for Season {
             let seed =
                 sim_core::derive_seed(self.world_seed, &[u64::from(self.season_id), index as u64, k as u64]);
             crate::injuries::roll_game_injuries(world, h, a, sim_core::derive_seed(seed, &[0xE]));
+            crate::morale::apply_game_morale(world, h, a, res.home_points, res.away_points);
         }
     }
 }
