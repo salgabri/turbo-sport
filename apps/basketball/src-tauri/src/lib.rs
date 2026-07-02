@@ -65,6 +65,7 @@ struct StandingRow {
     points_for: u32,
     points_against: u32,
     point_diff: i32,
+    form: Vec<String>,
 }
 
 #[tauri::command]
@@ -87,6 +88,7 @@ fn standings(state: State<AppState>) -> Vec<StandingRow> {
                 points_for: r.points_for,
                 points_against: r.points_against,
                 point_diff: r.point_diff(),
+                form: season.form_of(team_id).into_iter().map(String::from).collect(),
             })
             .collect(),
         None => Vec::new(),

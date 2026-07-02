@@ -47,13 +47,34 @@ pub struct Season {
     pub table: BTreeMap<u32, TeamRecord>,
     pub world_seed: u64,
     pub season_id: u32,
+    /// Recent results per team (W/L), oldest→newest, capped at [`FORM_LEN`]. Runtime-only — not
+    /// part of the save; it rebuilds as games play.
+    pub form: BTreeMap<u32, Vec<char>>,
 }
+
+/// How many recent results the form string keeps.
+pub const FORM_LEN: usize = 5;
 
 impl Season {
     pub fn new(teams: Vec<u32>, start: Date, world_seed: u64, season_id: u32) -> Self {
         let schedule = Schedule::round_robin(&teams, start);
         let table = teams.iter().map(|&t| (t, TeamRecord::default())).collect();
-        Season { teams, schedule, table, world_seed, season_id }
+        let form = teams.iter().map(|&t| (t, Vec::new())).collect();
+        Season { teams, schedule, table, world_seed, season_id, form }
+    }
+
+    /// Push one result (`'W'`/`'L'`) onto a team's form, keeping the last [`FORM_LEN`].
+    pub fn push_form(&mut self, team: u32, result: char) {
+        let f = self.form.entry(team).or_default();
+        f.push(result);
+        if f.len() > FORM_LEN {
+            f.remove(0);
+        }
+    }
+
+    /// A team's recent form, oldest→newest.
+    pub fn form_of(&self, team: u32) -> Vec<char> {
+        self.form.get(&team).cloned().unwrap_or_default()
     }
 
     pub fn is_complete(&self) -> bool {
@@ -110,6 +131,10 @@ impl League for Season {
         for (k, res) in results.iter().enumerate() {
             let (h, a) = fixtures[k];
             record_result(&mut self.table, h, a, res.home_points, res.away_points);
+            // Recent form (no draws in basketball).
+            let (hc, ac) = if res.home_points > res.away_points { ('W', 'L') } else { ('L', 'W') };
+            self.push_form(h, hc);
+            self.push_form(a, ac);
             // Attribute the score to players (games + points) and roll game injuries, each on a
             // stream seeded off the fixture coordinates so they reproduce like the score.
             crate::tally::credit_game(world, h, a, res.home_points, res.away_points);
