@@ -42,6 +42,17 @@ export type PlayerView = {
   captain?: boolean;
   suspended?: boolean;
   signed?: string | null;
+  games?: number | null;
+  points?: number | null;
+  injury_days?: number | null;
+};
+
+// Basketball points leaders (from the `top_scorers` command).
+export type ScorerRow = {
+  name: string | null;
+  team_id: number | null;
+  points: number;
+  games: number;
 };
 
 // Basketball standings: win/loss with points-for/against (no draws), matching

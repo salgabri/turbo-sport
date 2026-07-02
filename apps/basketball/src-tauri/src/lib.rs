@@ -68,6 +68,11 @@ struct StandingRow {
 }
 
 #[tauri::command]
+fn top_scorers(limit: usize, state: State<AppState>) -> Vec<basketball::ScorerRow> {
+    basketball::top_scorers(&mut state.world.lock().unwrap(), limit.clamp(1, 50))
+}
+
+#[tauri::command]
 fn standings(state: State<AppState>) -> Vec<StandingRow> {
     let world = state.world.lock().unwrap();
     match world.get_resource::<Season>() {
@@ -102,6 +107,7 @@ fn start_season(state: State<AppState>) -> Result<(), String> {
     }
     let today = world.resource::<SimClock>().date();
     let seed = world.get_resource::<SimSeed>().map_or(0, |s| s.0);
+    basketball::reset_tallies(&mut world);
     world.insert_resource(Season::new(teams, today, seed, today.year() as u32));
     Ok(())
 }
@@ -152,6 +158,7 @@ pub fn run() {
             team_squad,
             market,
             next_match,
+            top_scorers,
             current_date,
             season_active,
             standings,

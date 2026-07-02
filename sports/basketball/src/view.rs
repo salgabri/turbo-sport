@@ -46,6 +46,11 @@ pub struct SquadPlayer {
     pub potential: Option<u8>,
     pub market_value: Option<i64>,
     pub attrs: Option<Attrs>,
+    /// Season games / points so far (present once the player has featured).
+    pub games: Option<u16>,
+    pub points: Option<u16>,
+    /// Days until recovered from an injury, if currently injured.
+    pub injury_days: Option<u16>,
 }
 
 fn row(world: &World, entity: Entity, today: sim_core::Date) -> SquadPlayer {
@@ -68,6 +73,9 @@ fn row(world: &World, entity: Entity, today: sim_core::Date) -> SquadPlayer {
         potential: rating.map(|r| r.potential),
         market_value: e.get::<MarketValue>().map(|v| v.0),
         attrs: e.get::<Baller>().map(Attrs::from),
+        games: e.get::<crate::tally::BasketballTally>().map(|t| t.games),
+        points: e.get::<crate::tally::BasketballTally>().map(|t| t.points),
+        injury_days: e.get::<Condition>().map(|c| c.injury_days).filter(|&d| d > 0),
     }
 }
 
@@ -79,6 +87,35 @@ pub fn team_squad(world: &mut World, team_id: u32) -> Vec<SquadPlayer> {
         q.iter(world).filter(|(_, t)| t.0 == team_id).map(|(e, _)| e).collect()
     };
     ids.into_iter().map(|e| row(world, e, today)).collect()
+}
+
+/// A row of the top-scorers chart (points leaders).
+#[derive(Serialize, Clone, Debug)]
+pub struct ScorerRow {
+    pub name: Option<String>,
+    pub team_id: Option<u32>,
+    pub points: u16,
+    pub games: u16,
+}
+
+/// The league's leading scorers this season, most points first (ties by fewer games), capped at
+/// `limit`. Reads the accumulated [`crate::tally`].
+pub fn top_scorers(world: &mut World, limit: usize) -> Vec<ScorerRow> {
+    let mut v: Vec<ScorerRow> = {
+        let mut q = world.query::<(&Name, Option<&TeamId>, &crate::tally::BasketballTally)>();
+        q.iter(world)
+            .filter(|(_, _, t)| t.points > 0)
+            .map(|(n, team, t)| ScorerRow {
+                name: Some(n.0.clone()),
+                team_id: team.map(|x| x.0),
+                points: t.points,
+                games: t.games,
+            })
+            .collect()
+    };
+    v.sort_by(|a, b| b.points.cmp(&a.points).then(a.games.cmp(&b.games)).then(a.name.cmp(&b.name)));
+    v.truncate(limit);
+    v
 }
 
 /// Up to `limit` free agents as detailed basketball rows.

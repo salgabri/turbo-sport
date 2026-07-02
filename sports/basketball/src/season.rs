@@ -110,6 +110,12 @@ impl League for Season {
         for (k, res) in results.iter().enumerate() {
             let (h, a) = fixtures[k];
             record_result(&mut self.table, h, a, res.home_points, res.away_points);
+            // Attribute the score to players (games + points) and roll game injuries, each on a
+            // stream seeded off the fixture coordinates so they reproduce like the score.
+            crate::tally::credit_game(world, h, a, res.home_points, res.away_points);
+            let seed =
+                sim_core::derive_seed(self.world_seed, &[u64::from(self.season_id), index as u64, k as u64]);
+            crate::injuries::roll_game_injuries(world, h, a, sim_core::derive_seed(seed, &[0xE]));
         }
     }
 }

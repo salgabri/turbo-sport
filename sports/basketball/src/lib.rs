@@ -9,16 +9,21 @@
 pub mod attributes;
 pub mod database;
 pub mod engine;
+pub mod injuries;
 pub mod matchday;
 pub mod persistence;
 pub mod playback;
 pub mod season;
+pub mod tally;
 pub mod view;
 
 pub use attributes::Baller;
+pub use injuries::{roll_game_injuries, severity};
 pub use playback::{next_match_playback, simulate_match_playback, MatchPlayback};
+pub use tally::{credit_game, reset_tallies, BasketballTally};
 pub use view::{
-    free_agents as free_agents_detailed, team_squad as team_squad_detailed, Attrs, SquadPlayer,
+    free_agents as free_agents_detailed, team_squad as team_squad_detailed, top_scorers, Attrs,
+    ScorerRow, SquadPlayer,
 };
 pub use database::{load_world, sample, BasketballAbility, Database};
 pub use engine::{simulate_game, GameResult, Roster};

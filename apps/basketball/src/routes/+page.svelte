@@ -6,7 +6,7 @@
   import "$lib/design/tokens.css";
   import AppShell from "$lib/design/AppShell.svelte";
   import { BASKETBALL } from "$lib/design/theme";
-  import type { ClubView, PlayerView, StandingRow, Screen, MatchPlayback } from "$lib/design/dto";
+  import type { ClubView, PlayerView, StandingRow, Screen, MatchPlayback, ScorerRow } from "$lib/design/dto";
 
   import Home from "$lib/screens/Home.svelte";
   import Squad from "$lib/screens/Squad.svelte";
@@ -23,6 +23,7 @@
   let squad = $state<PlayerView[]>([]);
   let market = $state<PlayerView[]>([]);
   let standings = $state<StandingRow[]>([]);
+  let scorers = $state<ScorerRow[]>([]);
   let date = $state("");
   let seasonActive = $state(false);
   let busy = $state(false);
@@ -59,8 +60,13 @@
     if (myClubId === null) myClubId = clubs[0]?.team_id ?? null;
     if (myClubId !== null) squad = await invoke<PlayerView[]>("team_squad", { teamId: myClubId });
     market = await invoke<PlayerView[]>("market", { limit: 50 });
-    if (seasonActive) standings = await invoke<StandingRow[]>("standings");
-    else standings = [];
+    if (seasonActive) {
+      standings = await invoke<StandingRow[]>("standings");
+      scorers = await invoke<ScorerRow[]>("top_scorers", { limit: 10 });
+    } else {
+      standings = [];
+      scorers = [];
+    }
   }
 
   async function withBusy(label: string, fn: () => Promise<void>) {
@@ -175,7 +181,7 @@
   {:else if screen === "profile"}
     <Profile {theme} player={selectedPlayer} />
   {:else if screen === "table"}
-    <Table {theme} {standings} {teamName} myTeamId={myClubId} />
+    <Table {theme} {standings} {teamName} myTeamId={myClubId} {scorers} />
   {:else if screen === "transfers"}
     <Transfers {theme} {market} club={myClub} />
   {:else if screen === "match"}
