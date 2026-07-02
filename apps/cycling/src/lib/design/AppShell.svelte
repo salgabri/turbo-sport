@@ -49,6 +49,7 @@
     { id: "home", label: "Home", icon: "home" },
     { id: "roster", label: "Roster", icon: "squad" },
     { id: "race", label: "Race", icon: "trophy" },
+    { id: "stage", label: "Stage", icon: "play" },
   ];
 
   const accentVars = $derived(

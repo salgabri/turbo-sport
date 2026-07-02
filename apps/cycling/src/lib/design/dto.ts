@@ -15,9 +15,26 @@ export type GcRow = {
   gap_secs: number;
 };
 
+// ---- live stage playback (the "watch" experience) ----
+
+export type RiderGap = {
+  rank: number;
+  name: string;
+  gap_secs: number;
+};
+
+export type StagePlayback = {
+  stage_name: string;
+  km_total: number;
+  gradient: string;
+  profile: [number, number][];
+  riders: RiderGap[];
+  winner: string;
+};
+
 // ---- UI-side view models ----
 
-export type Screen = "home" | "roster" | "race";
+export type Screen = "home" | "roster" | "race" | "stage";
 
 export type Kpi = {
   label: string;

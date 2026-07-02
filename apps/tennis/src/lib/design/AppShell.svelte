@@ -41,6 +41,7 @@
     { id: "home", label: "Home", icon: "home" },
     { id: "draw", label: "Draw", icon: "squad" },
     { id: "bracket", label: "Bracket", icon: "trophy" },
+    { id: "match", label: "Match", icon: "play" },
   ];
 
   const accentVars = $derived(

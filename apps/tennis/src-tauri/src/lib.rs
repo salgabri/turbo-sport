@@ -7,7 +7,7 @@ use bevy_ecs::prelude::*;
 use serde::Serialize;
 use sim_core::{Name, SimSeed};
 use tauri::State;
-use tennis::{simulate_tournament, Player, Seed, TennisPlayer};
+use tennis::{featured_match_playback, simulate_tournament, Player, Seed, TennisPlayer, TiePlayback};
 
 struct AppState {
     world: Mutex<World>,
@@ -132,13 +132,21 @@ fn run_tournament(state: State<AppState>) -> Tourney {
     Tourney { champion: names[result.champion].clone(), rounds }
 }
 
+/// Playback for the featured tie: the two strongest players in the draw, replayable in 2D.
+#[tauri::command]
+fn featured_match(state: State<AppState>) -> Option<TiePlayback> {
+    let mut world = state.world.lock().unwrap();
+    let seed = world.get_resource::<SimSeed>().map_or(0, |s| s.0);
+    featured_match_playback(&mut world, seed)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .manage(AppState { world: Mutex::new(starting_world()) })
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![draw, run_tournament])
+        .invoke_handler(tauri::generate_handler![draw, run_tournament, featured_match])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

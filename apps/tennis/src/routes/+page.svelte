@@ -5,11 +5,12 @@
   import "$lib/design/tokens.css";
   import AppShell from "$lib/design/AppShell.svelte";
   import { TENNIS } from "$lib/design/theme";
-  import type { PlayerRow, Tourney, Screen } from "$lib/design/dto";
+  import type { PlayerRow, Tourney, Screen, TiePlayback } from "$lib/design/dto";
 
   import Home from "$lib/screens/Home.svelte";
   import Draw from "$lib/screens/Draw.svelte";
   import Bracket from "$lib/screens/Bracket.svelte";
+  import Match from "$lib/screens/Match.svelte";
 
   const theme = TENNIS;
 
@@ -19,11 +20,14 @@
   let toast = $state<string | null>(null);
 
   let screen = $state<Screen>("home");
+  let tiePlayback = $state<TiePlayback | null>(null);
+  let matchLoading = $state(false);
 
   const SCREEN_META: Record<Screen, { title: string; sub: string }> = {
     home: { title: "Home", sub: "Overview" },
     draw: { title: "The Draw", sub: "Seeded field" },
     bracket: { title: "Bracket", sub: "Single elimination" },
+    match: { title: "Match", sub: "Live tie" },
   };
 
   let toastTimer: ReturnType<typeof setTimeout> | undefined;
@@ -53,8 +57,20 @@
     }
   }
 
+  async function loadMatch() {
+    matchLoading = true;
+    try {
+      tiePlayback = await invoke<TiePlayback | null>("featured_match");
+    } catch (e) {
+      flash(`${e}`);
+    } finally {
+      matchLoading = false;
+    }
+  }
+
   function onNav(s: Screen) {
     screen = s;
+    if (s === "match" && !tiePlayback && !matchLoading) loadMatch();
   }
 
   const meta = $derived(SCREEN_META[screen]);
@@ -88,5 +104,7 @@
     <Draw {theme} {draw} />
   {:else if screen === "bracket"}
     <Bracket {theme} {result} {busy} onPlay={play} />
+  {:else if screen === "match"}
+    <Match {theme} playback={tiePlayback} onReload={loadMatch} loading={matchLoading} />
   {/if}
 </AppShell>

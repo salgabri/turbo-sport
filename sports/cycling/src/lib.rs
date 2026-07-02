@@ -7,10 +7,12 @@
 
 pub mod attributes;
 pub mod database;
+pub mod playback;
 pub mod race;
 pub mod stage;
 
 pub use attributes::{Rider, StageType};
 pub use database::{load_world, sample, CyclingAbility, Database};
+pub use playback::{next_stage_playback, simulate_stage_playback, RiderGap, StagePlayback};
 pub use race::{gather_riders, simulate_race, GcEntry, Race};
 pub use stage::{simulate_stage, StageTime};

@@ -183,9 +183,23 @@ basketball stat rows. Verified: basketball 14 tests (incl. scores-sum-to-final +
 determinism), clippy clean, app crate `cargo check` green, svelte-check 0/0, court
 render confirmed (5+5 dots, key/hoops, stats).
 
-Next for match: cycling climb (stage profile + on-the-road groups) and tennis
-(single-tie point timeline); later, engine-driven ball/positions instead of the
-procedural drift.
+**Cycling stage + tennis tie (done):** the individual sports got their own live
+views (event-shaped apps, so custom screens, not the pitch/court component).
+- Cycling `playback`: runs one Mountain `simulate_stage` for the roster, ranks by
+  time, gaps to the leader; `Stage.svelte` counts KM-to-go down over a climb-profile
+  SVG while each rider's gap grows from 0 to its final value (play/pause + speed).
+  Command `next_stage`.
+- Tennis `playback`: runs `simulate_match` for the top two seeds, then synthesises
+  per-set game scores + a per-game feed consistent with the sets won (separate
+  seeded stream). `Match.svelte` reveals set boxes + the game feed as the clock
+  advances. Command `featured_match`.
+Verified: cycling 9 + tennis 11 tests (determinism + consistency), clippy clean,
+both app crates `cargo check` green, svelte-check 0/0, and mock renders confirm the
+climb profile + rider gaps and the tennis scoreboard/set-grid/feed.
+
+**All four sports now have live 2D experiences.** Later: engine-driven ball/positions
+(football/basketball) instead of procedural drift; wire the live match into the
+season loop so watching a game records its result.
 
 ### Known follow-ups
 - Fonts are pulled from Google Fonts via `@import` in `tokens.css`. Self-host

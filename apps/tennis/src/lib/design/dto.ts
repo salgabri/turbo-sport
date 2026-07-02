@@ -28,6 +28,36 @@ export type Tourney = {
   rounds: RoundOut[];
 };
 
+// ---- live match playback ----
+
+export type SetScore = {
+  home_games: number;
+  away_games: number;
+};
+
+export type TieEvent = {
+  /** 1-indexed set number. */
+  set: number;
+  /** 1-indexed game number within the whole tie (the clock index). */
+  game: number;
+  /** 0 = home, 1 = away. */
+  side: number;
+  title: string;
+  sub: string;
+};
+
+export type TiePlayback = {
+  home_name: string;
+  away_name: string;
+  /** display seed, 1 = top of this tie. */
+  home_seed: number;
+  away_seed: number;
+  /** 0 = home won, 1 = away won. */
+  winner_side: number;
+  sets: SetScore[];
+  feed: TieEvent[];
+};
+
 // ---- UI-side view models ----
 
-export type Screen = "home" | "draw" | "bracket";
+export type Screen = "home" | "draw" | "bracket" | "match";

@@ -4,7 +4,7 @@
 use std::sync::Mutex;
 
 use bevy_ecs::prelude::*;
-use cycling::{simulate_race, Race, Rider, StageType};
+use cycling::{next_stage_playback, simulate_race, Race, Rider, StagePlayback, StageType};
 use serde::Serialize;
 use sim_core::{Name, SimSeed};
 use tauri::State;
@@ -87,13 +87,20 @@ fn run_tour(state: State<AppState>) -> Vec<GcRow> {
         .collect()
 }
 
+/// Build the live-replay playback for the featured mountain stage (deterministic from the
+/// world seed). Cycling has one roster, so there is no team argument.
+#[tauri::command]
+fn next_stage(state: State<AppState>) -> StagePlayback {
+    next_stage_playback(&mut state.world.lock().unwrap())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .manage(AppState { world: Mutex::new(starting_world()) })
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![roster, run_tour])
+        .invoke_handler(tauri::generate_handler![roster, run_tour, next_stage])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
