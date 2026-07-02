@@ -110,6 +110,14 @@ pub struct Rating {
     pub potential: u8,
 }
 
+/// The manager-set training emphasis for a player: an **opaque** index into the *sport's* own
+/// attribute-group table (football Technical/Physical/Mental, basketball Offense/Defense/…).
+/// Absent means "balanced". `sim-core` never names the groups — the sport's development system
+/// reads this to bias which attributes grow. Not persisted yet (defaults to balanced on load);
+/// persisting it is a small versioned-save follow-up.
+#[derive(Component, Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TrainingFocus(pub u8);
+
 /// The minimal set of components every simulated person shares. Sport crates spawn this
 /// alongside their own ability components; a [`Contract`] is added separately because a
 /// free agent is a person without one.

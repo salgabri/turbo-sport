@@ -35,7 +35,7 @@ pub use database::{ClubRecord, Database, DbDate, DivisionRecord, PersonRecord};
 pub use economy::{value_from, Balance, MarketValue, Money, WeeklyIncome};
 pub use entity::{
     age_years, BirthDate, Condition, Contract, FreeAgent, Morale, Name, Nationality, PersonBundle,
-    PositionGroup, Rating, Retired, SquadTarget, TeamId, WageDemand,
+    PositionGroup, Rating, Retired, SquadTarget, TeamId, TrainingFocus, WageDemand,
 };
 pub use league::{run_league_day, League, Matchday, Schedule};
 pub use lifecycle::RETIREMENT_AGE;
