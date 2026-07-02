@@ -21,7 +21,7 @@ pub mod view;
 
 pub use attributes::Footballer;
 pub use playback::{next_match_playback, simulate_match_playback, MatchPlayback};
-pub use train::{develop, FOCUS_MENTAL, FOCUS_PHYSICAL, FOCUS_TECHNICAL};
+pub use train::{develop, set_team_focus, FOCUS_MENTAL, FOCUS_PHYSICAL, FOCUS_TECHNICAL};
 pub use view::{
     free_agents as free_agents_detailed, team_squad as team_squad_detailed, Attrs, SquadPlayer,
 };

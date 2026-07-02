@@ -9,13 +9,26 @@
     count,
     selectedName,
     onSelectPlayer,
+    onTrain,
+    busy = false,
   }: {
     theme: SportTheme;
     squad: PlayerView[];
     count: number;
     selectedName: string;
     onSelectPlayer: (p: PlayerView) => void;
+    onTrain?: (focus: number | null) => void;
+    busy?: boolean;
   } = $props();
+
+  // ---- training focus control ----
+  let focus = $state<number | null>(null); // null balanced, 0 tec, 1 phy, 2 men
+  const focusOpts: { id: number | null; label: string }[] = [
+    { id: null, label: "Balanced" },
+    { id: 0, label: "Tec" },
+    { id: 1, label: "Phy" },
+    { id: 2, label: "Men" },
+  ];
 
   // ---- column-set tabs (client-side) ----
   type TabId = "overview" | "attributes" | "contract";
@@ -238,6 +251,25 @@
     </div>
     <div class="right">
       <span class="count">{count} players · click to select</span>
+      {#if onTrain}
+        <div class="train">
+          <span class="tlabel mono">TRAINING</span>
+          <div class="focusset">
+            {#each focusOpts as o}
+              <div
+                class="foc"
+                class:on={focus === o.id}
+                role="button"
+                tabindex="0"
+                onclick={() => (focus = o.id)}
+                onkeydown={(e) => (e.key === "Enter" || e.key === " ") && (focus = o.id)}>
+                {o.label}
+              </div>
+            {/each}
+          </div>
+          <button class="trainbtn" disabled={busy} onclick={() => onTrain?.(focus)}>Train</button>
+        </div>
+      {/if}
     </div>
   </div>
 
@@ -359,6 +391,57 @@
     font-size: 11.5px;
     color: #616b77;
     font-family: var(--font-mono);
+  }
+  .train {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tlabel {
+    font-size: 9.5px;
+    letter-spacing: 0.06em;
+    color: #565f6a;
+  }
+  .focusset {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    background: #0f1319;
+    border: 1px solid #232a33;
+    border-radius: 9px;
+    padding: 3px;
+  }
+  .foc {
+    padding: 4px 9px;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #8b95a1;
+    cursor: pointer;
+    user-select: none;
+  }
+  .foc.on {
+    background: var(--accent-soft);
+    color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent-line);
+  }
+  .trainbtn {
+    padding: 6px 13px;
+    background: var(--accent);
+    color: #08120c;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .trainbtn:hover:not(:disabled) {
+    filter: brightness(1.08);
+  }
+  .trainbtn:disabled {
+    opacity: 0.5;
+    cursor: default;
   }
 
   /* ---- scroll body ---- */

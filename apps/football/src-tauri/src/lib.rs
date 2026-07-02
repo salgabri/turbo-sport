@@ -113,10 +113,21 @@ fn start_season(state: State<AppState>) -> Result<(), String> {
     if teams.len() < 2 || teams.len() % 2 != 0 {
         return Err(format!("need an even number of clubs (have {})", teams.len()));
     }
+    // A pre-season of training: youngsters grow toward their potential, veterans decline.
+    football::develop(&mut world);
     let today = world.resource::<SimClock>().date();
     let seed = world.get_resource::<SimSeed>().map_or(0, |s| s.0);
     world.insert_resource(Season::new(teams, today, seed, today.year() as u32));
     Ok(())
+}
+
+/// Set the managed club's training focus (0 Technical / 1 Physical / 2 Mental, or `None` for
+/// balanced) and apply one development step to the world. The UI refreshes to show the change.
+#[tauri::command]
+fn train_squad(team_id: u32, focus: Option<u8>, state: State<AppState>) {
+    let mut world = state.world.lock().unwrap();
+    football::set_team_focus(&mut world, team_id, focus);
+    football::develop(&mut world);
 }
 
 /// Advance the simulation `days` days: run the daily schedule (aging, contract expiry, wages)
@@ -176,6 +187,7 @@ pub fn run() {
             start_season,
             advance,
             transfer_window,
+            train_squad,
             save_game,
             load_game,
         ])

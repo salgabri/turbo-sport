@@ -136,6 +136,21 @@
     screen = "profile";
   }
 
+  const FOCUS_LABEL = ["Technical", "Physical", "Mental"];
+  async function trainSquad(focus: number | null) {
+    if (myClubId === null) return;
+    busy = true;
+    try {
+      await invoke("train_squad", { teamId: myClubId, focus });
+      await refresh();
+      flash(`Squad trained — ${focus == null ? "balanced" : FOCUS_LABEL[focus] + " focus"}`);
+    } catch (e) {
+      flash(`${e}`);
+    } finally {
+      busy = false;
+    }
+  }
+
   const meta = $derived(SCREEN_META[screen]);
   const clubName = $derived(myClub?.name ?? "—");
 
@@ -171,7 +186,7 @@
   {#if screen === "home"}
     <Home {theme} club={myClub} {squad} {standings} myTeamId={myClubId} {teamName} {seasonActive} {onNav} />
   {:else if screen === "squad"}
-    <Squad {theme} {squad} count={squad.length} selectedName={selectedPlayer?.name ?? "—"} {onSelectPlayer} />
+    <Squad {theme} {squad} count={squad.length} selectedName={selectedPlayer?.name ?? "—"} {onSelectPlayer} onTrain={trainSquad} {busy} />
   {:else if screen === "profile"}
     <Profile {theme} player={selectedPlayer} />
   {:else if screen === "table"}

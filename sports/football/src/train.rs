@@ -51,6 +51,26 @@ pub fn develop(world: &mut World) {
     }
 }
 
+/// Set (or clear, with `None`) the manager's [`TrainingFocus`] on every footballer of `team_id`.
+/// The whole squad shares one focus for now; per-player focus is a later refinement.
+pub fn set_team_focus(world: &mut World, team_id: u32, focus: Option<u8>) {
+    let ids: Vec<Entity> = {
+        let mut q = world.query_filtered::<(Entity, &sim_core::TeamId), With<Footballer>>();
+        q.iter(world).filter(|(_, t)| t.0 == team_id).map(|(e, _)| e).collect()
+    };
+    for e in ids {
+        let mut em = world.entity_mut(e);
+        match focus {
+            Some(g) => {
+                em.insert(TrainingFocus(g));
+            }
+            None => {
+                em.remove::<TrainingFocus>();
+            }
+        }
+    }
+}
+
 /// The per-player rule. `rating.overall` is recomputed and clamped to `potential` as its ceiling.
 fn develop_one(f: &mut Footballer, rating: &mut Rating, position: u8, focus: Option<u8>, age: u32) {
     if age < PEAK_AGE && rating.overall < rating.potential {

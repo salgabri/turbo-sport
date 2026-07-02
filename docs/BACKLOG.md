@@ -20,16 +20,21 @@ ECS / deterministic / versioned-save / sim-core-vs-sport architecture).
 These are the biggest gaps between "four sport demos" and "a management sim." Without most of
 P0 there is no *game* to play between matches.
 
-### 1. Player development & training  · status: **missing** · effort: **L**
-- **What:** attributes actually change over time. A deterministic growth model moving `overall`
-  toward `potential`, gated by age curve (rise → peak → decline), match minutes, and a training
-  focus the manager sets (per-player attribute/role focus + a squad training intensity).
-- **Why:** the genre's central progression loop (FM's CA/PA-toward-potential is its spine). Our
-  `Rating{overall,potential}` exists but is frozen — the whole "raise a wonderkid" fantasy is
-  absent.
-- **Fit:** deterministic system in `sim-core` (age curve, minutes→XP) with the per-sport growth
-  weighting supplied by the sport (same hook pattern as OVR). No new save fields beyond a small
-  training-focus component. Enables Youth, Scouting payoff, and Staff later.
+### 1. Player development & training  · status: **v1 DONE (football)** · effort: **L**
+- **What:** attributes change over time — a deterministic, age-curved model.
+- **Shipped (football):** `sim-core::TrainingFocus(u8)` (opaque group index) + `football::train`:
+  `develop(world)` grows youngsters (< 30) below their potential — biased by the manager's
+  training focus, or their position when balanced — and declines players 31+ physically, then
+  recomputes rating + market value. Pure function of age + attributes (no RNG). Wired to the app:
+  a **Training** control on the Squad screen (Balanced/Tec/Phy/Men focus + a Train button) and a
+  pre-season development pass on `start_season`. Unit-tested (youth grows to potential, focus
+  biases which attributes grow, veterans decline, peak is stable); end-to-end render verified.
+- **Follow-ups:** minutes-played driving growth (needs SeasonTally, #14); per-player (not just
+  team-wide) focus; persist `TrainingFocus` (a small save-version bump); propagate to basketball
+  and the individual sports; a proper training-schedule/coaching-quality layer (ties to Staff #10).
+- **Why:** the genre's central progression loop (FM's CA/PA-toward-potential is its spine).
+- **Fit:** the generic bits (age, opaque focus group) live in `sim-core`; the sport owns the
+  attribute-growth weighting (same hook pattern as OVR). No save-format change in v1.
 
 ### 2. Tactics & in-match management (team sports)  · status: **stub** · effort: **XL**
 - **What:** selectable formation + per-position **roles/duties**, a mentality dial and a handful
