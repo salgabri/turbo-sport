@@ -215,7 +215,7 @@
     flex: 1;
     background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 12px;
+    border-radius: 0;
     padding: 13px 15px;
   }
   .shortlist-card {
@@ -235,7 +235,7 @@
   }
   .card-big {
     font-size: 24px;
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: -0.02em;
     margin: 5px 0 8px;
   }
@@ -250,12 +250,12 @@
   .bar {
     height: 5px;
     background: var(--line);
-    border-radius: 3px;
+    border-radius: 0;
     overflow: hidden;
   }
   .bar-fill {
     height: 100%;
-    border-radius: 3px;
+    border-radius: 0;
   }
   .card-sub {
     font-size: 11px;
@@ -271,7 +271,7 @@
     gap: 10px;
     background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 12px;
+    border-radius: 0;
     padding: 9px 14px;
   }
   .fl-label {
@@ -294,7 +294,7 @@
     background: #0f1319;
     border: 1px solid var(--line);
     padding: 4px 11px;
-    border-radius: 7px;
+    border-radius: 0;
     cursor: pointer;
   }
   .pill:hover {
@@ -328,7 +328,7 @@
     background: #0f1319;
     border: 1px solid var(--line);
     padding: 3px 8px;
-    border-radius: 6px;
+    border-radius: 0;
   }
 
   /* ---- table + aside ---- */
@@ -342,7 +342,7 @@
     min-width: 0;
     background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: 0;
     overflow: hidden;
   }
   .thead {
@@ -406,7 +406,7 @@
     min-width: 34px;
     height: 20px;
     padding: 0 6px;
-    border-radius: 5px;
+    border-radius: 0;
     font-size: 10.5px;
     font-weight: 700;
     font-family: var(--font-mono);
@@ -470,7 +470,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 7px;
+    border-radius: 0;
     background: #1b212a;
     border: 1px solid #2a323c;
     color: var(--muted-2);
@@ -506,7 +506,7 @@
     flex: none;
     background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: 0;
     overflow: hidden;
   }
   .aside-head {
@@ -527,7 +527,7 @@
     color: var(--accent);
     background: var(--accent-soft);
     padding: 2px 7px;
-    border-radius: 20px;
+    border-radius: 0;
   }
   .sl-list {
     padding: 6px;
@@ -537,7 +537,7 @@
     align-items: center;
     gap: 9px;
     padding: 9px 10px;
-    border-radius: 9px;
+    border-radius: 0;
   }
   .sl-row:hover {
     background: var(--hover);
@@ -565,7 +565,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 6px;
+    border-radius: 0;
     color: var(--dim);
     cursor: pointer;
     background: none;

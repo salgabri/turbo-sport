@@ -100,7 +100,7 @@
   .card {
     background: #14181e;
     border: 1px solid #232a33;
-    border-radius: 14px;
+    border-radius: 0;
     overflow: hidden;
   }
 
@@ -133,7 +133,7 @@
     font-weight: 700;
     font-size: 12.5px;
     border: none;
-    border-radius: 9px;
+    border-radius: 0;
     cursor: pointer;
     box-shadow: 0 0 18px var(--accent-soft);
     font-family: inherit;

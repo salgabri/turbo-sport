@@ -133,12 +133,12 @@
     gap: 4px;
     background: #0f1319;
     border: 1px solid #232a33;
-    border-radius: 9px;
+    border-radius: 0;
     padding: 3px;
   }
   .seg {
     padding: 5px 12px;
-    border-radius: 7px;
+    border-radius: 0;
     font-size: 12px;
     font-weight: 600;
     background: transparent;
@@ -234,13 +234,13 @@
     font-family: var(--font-mono);
     font-weight: 700;
     font-size: 11.5px;
-    border-radius: 6px;
+    border-radius: 0;
     background: #1b212a;
     border: 1px solid #2a323c;
     color: var(--muted-3);
   }
   .seed-badge.top {
-    font-weight: 800;
+    font-weight: 700;
   }
   .pcol {
     flex: 1;

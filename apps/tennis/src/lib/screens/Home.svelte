@@ -182,14 +182,25 @@
     gap: 12px;
   }
   .kpi {
+    position: relative;
     background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 13px;
+    border-radius: 0;
     padding: 13px 14px;
     display: flex;
     flex-direction: column;
     gap: 7px;
     min-height: 92px;
+  }
+  .kpi::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    width: 9px;
+    height: 9px;
+    border-top: 2px solid var(--accent);
+    border-left: 2px solid var(--accent);
   }
   .kpi-label {
     font-size: 10px;
@@ -201,7 +212,7 @@
   }
   .kpi-value {
     font-size: 23px;
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1;
     white-space: nowrap;
@@ -226,7 +237,7 @@
     min-width: 0;
     background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: 0;
     overflow: hidden;
   }
   .inbox-head {
@@ -252,7 +263,7 @@
     background: var(--accent-soft);
     color: var(--accent);
     padding: 2px 7px;
-    border-radius: 20px;
+    border-radius: 0;
   }
   .inbox-tabs {
     display: flex;
@@ -264,7 +275,7 @@
     font-weight: 500;
     color: var(--muted-2);
     padding: 4px 10px;
-    border-radius: 7px;
+    border-radius: 0;
   }
   .tab.on {
     font-weight: 600;
@@ -307,7 +318,7 @@
     font-weight: 700;
     font-size: 13px;
     border: none;
-    border-radius: 9px;
+    border-radius: 0;
     cursor: pointer;
     box-shadow: 0 0 20px var(--accent-soft);
     font-family: inherit;
@@ -322,7 +333,7 @@
     padding: 12px 14px;
     border: 1px solid var(--accent-line);
     background: var(--accent-soft);
-    border-radius: 10px;
+    border-radius: 0;
   }
   .done-icon {
     display: flex;
@@ -348,7 +359,7 @@
   .card {
     background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: 0;
     overflow: hidden;
   }
   .card-head {
@@ -391,7 +402,7 @@
     display: flex;
     align-items: center;
     padding: 6px 8px;
-    border-radius: 7px;
+    border-radius: 0;
   }
   .c-pos {
     width: 34px;
@@ -419,7 +430,7 @@
     padding: 10px 16px;
     border: 1px solid var(--accent-line);
     color: var(--accent);
-    border-radius: 9px;
+    border-radius: 0;
     font-size: 12.5px;
     font-weight: 600;
     cursor: pointer;

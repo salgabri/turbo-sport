@@ -23,6 +23,9 @@
     onAdvance,
     toast = null,
     actions,
+    buildTag = "ENGINE 26.7 · 128 TPS",
+    ticker = null,
+    fx = true,
     children,
   }: {
     theme: SportTheme;
@@ -42,6 +45,9 @@
     onAdvance: () => void;
     toast?: string | null;
     actions?: import("svelte").Snippet;
+    buildTag?: string;
+    ticker?: string | null;
+    fx?: boolean;
     children: import("svelte").Snippet;
   } = $props();
 
@@ -55,6 +61,13 @@
   const accentVars = $derived(
     `--accent:${theme.accent};--accent-soft:${theme.accent}22;--accent-dim:${theme.accent}14;--accent-line:${theme.accent}55`,
   );
+
+  // LIVE WIRE marquee text — pages may pass a richer feed; otherwise a
+  // sensible default keeps the wire alive.
+  const tickerText = $derived(
+    ticker ??
+      `${gameName}   ///   ${clubName} · ${leagueName}   ///   ${title.toUpperCase()}`,
+  );
 </script>
 
 <div class="shell" style={accentVars}>
@@ -64,6 +77,7 @@
       <div class="logo"><div class="logo-slash"></div></div>
       <span class="gamename">{gameName}</span>
       <span class="gamesub">— {clubName} · {leagueName}</span>
+      <span class="buildtag mono">{buildTag}</span>
     </div>
     <div class="tb-win">
       <div class="wbtn"><Icon name="min" size={15} /></div>
@@ -87,13 +101,14 @@
       <div class="navwrap">
         <div class="navlabel mono">MENU</div>
         <div class="navlist">
-          {#each nav as it (it.id)}
+          {#each nav as it, i (it.id)}
             <button
               class="navitem"
               class:on={screen === it.id}
               onclick={() => onNav(it.id)}>
               <span class="navicon"><Icon name={it.icon} size={18} /></span>
               <span class="navtext">{it.label}</span>
+              <span class="navkey mono">[{i + 1}]</span>
               {#if it.badge}<span class="navbadge mono">{it.badge}</span>{/if}
             </button>
           {/each}
@@ -118,9 +133,9 @@
           <div class="tt-sub mono">{sub}</div>
         </div>
 
-        <div class="search">
-          <Icon name="search" size={16} />
-          <span class="ph">Search riders…</span>
+        <div class="cmd">
+          <span class="cmd-prompt mono">&gt;_</span>
+          <span class="cmd-ph mono">sim · scout · sign — type a command</span>
           <span class="kbd mono">⌘K</span>
         </div>
 
@@ -129,14 +144,16 @@
           <div class="datechip">
             <Icon name="calendar" size={15} />
             <span class="mono">{dateStr}</span>
+            <span class="caret"></span>
           </div>
           <div class="bell">
             <Icon name="bell" size={18} />
             {#if notif}<span class="bellbadge mono">{notif}</span>{/if}
           </div>
           <button class="advance" disabled={busy} onclick={onAdvance}>
-            <Icon name="play" size={15} />
-            <span>Run Tour</span>
+            <Icon name="play" size={14} />
+            <span>SIM</span>
+            <span class="simkey mono">SPACE</span>
           </button>
         </div>
       </div>
@@ -146,6 +163,25 @@
       </div>
     </main>
   </div>
+
+  <!-- LIVE WIRE ticker -->
+  <div class="ticker">
+    <div class="ticker-tag">
+      <span class="ticker-dot"></span>
+      <span class="mono">LIVE WIRE</span>
+    </div>
+    <div class="ticker-track">
+      <div class="ticker-scroll">
+        <span class="mono">{tickerText}</span>
+        <span class="mono">{tickerText}</span>
+      </div>
+    </div>
+    <div class="ticker-date"><span class="mono">{dateStr}</span></div>
+  </div>
+
+  {#if fx}
+    <div class="fxoverlay"></div>
+  {/if}
 
   {#if toast}
     <div class="toast">
@@ -184,20 +220,23 @@
     display: flex;
     align-items: center;
     gap: 9px;
+    min-width: 0;
+    overflow: hidden;
   }
   .logo {
     width: 15px;
     height: 15px;
-    border-radius: 4px;
+    border-radius: 0;
     background: var(--accent);
     position: relative;
     box-shadow: 0 0 10px var(--accent-soft);
+    flex: none;
   }
   .logo-slash {
     position: absolute;
     inset: 4.5px 2px 4.5px 6.5px;
     background: var(--bg-titlebar);
-    border-radius: 1px;
+    border-radius: 0;
     transform: skewX(-14deg);
   }
   .gamename {
@@ -206,10 +245,26 @@
     letter-spacing: 0.22em;
     font-weight: 600;
     color: var(--text-3);
+    white-space: nowrap;
+    flex: none;
   }
   .gamesub {
     font-size: 11px;
     color: var(--faint);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .buildtag {
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    color: #5d6874;
+    background: #10151b;
+    border: 1px solid #1d242c;
+    padding: 2px 6px;
+    white-space: nowrap;
+    flex: none;
   }
   .tb-win {
     display: flex;
@@ -223,7 +278,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 5px;
+    border-radius: 0;
     cursor: pointer;
   }
   .wbtn:hover {
@@ -261,7 +316,7 @@
     width: 46px;
     height: 46px;
     flex: none;
-    border-radius: 11px;
+    border-radius: 0;
     background: var(--accent-soft);
     border: 1px solid var(--accent-line);
     display: flex;
@@ -309,15 +364,17 @@
   .navitem {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 9px 11px;
-    border-radius: 9px;
+    gap: 11px;
+    padding: 8px 10px;
+    border-radius: 0;
     cursor: pointer;
     background: none;
     border: none;
-    color: var(--muted-2);
-    font-size: 13.5px;
-    font-weight: 600;
+    color: #8d97a3;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     font-family: inherit;
     text-align: left;
   }
@@ -326,18 +383,24 @@
   }
   .navitem.on {
     background: var(--accent-soft);
-    color: var(--text);
-    box-shadow: inset 3px 0 0 var(--accent);
+    color: #f2f6f9;
+    font-weight: 600;
+    box-shadow: inset 2px 0 0 var(--accent), inset 0 0 0 1px var(--accent-line);
   }
   .navicon {
     display: flex;
-    color: var(--muted-3);
+    color: #7f8894;
+    flex: none;
   }
   .navitem.on .navicon {
     color: var(--accent);
   }
   .navtext {
     flex: 1;
+  }
+  .navkey {
+    font-size: 9.5px;
+    color: #4d5763;
   }
   .navbadge {
     font-size: 11px;
@@ -347,7 +410,7 @@
     min-width: 19px;
     height: 19px;
     padding: 0 5px;
-    border-radius: 10px;
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -363,7 +426,7 @@
     width: 34px;
     height: 34px;
     flex: none;
-    border-radius: 9px;
+    border-radius: 0;
     background: var(--raised);
     border: 1px solid #272e37;
     display: flex;
@@ -391,7 +454,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 8px;
+    border-radius: 0;
     color: var(--dim);
     cursor: pointer;
   }
@@ -433,30 +496,48 @@
     color: var(--muted-3);
     margin-top: 2px;
   }
-  .search {
+
+  /* command palette */
+  .cmd {
     flex: 1;
     max-width: 340px;
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: 9px;
-    background: #14181e;
+    background: #0d1117;
     border: 1px solid var(--line-3);
-    border-radius: 9px;
+    border-radius: 0;
     padding: 8px 11px;
     color: var(--dim);
+    overflow: hidden;
   }
-  .search .ph {
+  .cmd:hover {
+    border-color: var(--accent-line);
+  }
+  .cmd-prompt {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    flex: none;
+  }
+  .cmd-ph {
     flex: 1;
-    font-size: 12.5px;
+    min-width: 0;
+    font-size: 11.5px;
     color: #5c6570;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .kbd {
     font-size: 10.5px;
     background: #1c222a;
     border: 1px solid #2a323c;
     padding: 2px 6px;
-    border-radius: 5px;
+    border-radius: 0;
     color: var(--muted-3);
+    flex: none;
   }
   .tb-right {
     display: flex;
@@ -476,7 +557,7 @@
     background: #14181e;
     border: 1px solid var(--line-3);
     color: var(--text-3);
-    border-radius: 9px;
+    border-radius: 0;
     font-size: 12.5px;
     font-weight: 600;
     font-family: inherit;
@@ -497,7 +578,7 @@
     padding: 7px 12px;
     background: #14181e;
     border: 1px solid var(--line-3);
-    border-radius: 9px;
+    border-radius: 0;
     color: var(--muted-3);
   }
   .datechip .mono {
@@ -505,6 +586,12 @@
     font-weight: 500;
     color: var(--text-2);
     letter-spacing: 0.02em;
+  }
+  .caret {
+    width: 7px;
+    height: 13px;
+    background: var(--accent);
+    animation: tsBlink 1.1s steps(1) infinite;
   }
   .bell {
     position: relative;
@@ -515,7 +602,7 @@
     justify-content: center;
     background: #14181e;
     border: 1px solid var(--line-3);
-    border-radius: 9px;
+    border-radius: 0;
     color: var(--muted);
     cursor: pointer;
   }
@@ -534,7 +621,7 @@
     color: var(--bg-titlebar);
     font-size: 10px;
     font-weight: 700;
-    border-radius: 9px;
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -543,24 +630,39 @@
   .advance {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 9px 17px;
+    gap: 9px;
+    padding: 10px 20px;
     background: var(--accent);
-    color: #08120c;
+    color: #07120c;
     font-weight: 700;
-    font-size: 13.5px;
+    font-size: 14.5px;
+    letter-spacing: 0.1em;
     border: none;
-    border-radius: 9px;
+    border-radius: 0;
     cursor: pointer;
-    box-shadow: 0 0 20px var(--accent-soft);
+    box-shadow: 0 0 22px var(--accent-soft);
     font-family: inherit;
+    clip-path: polygon(
+      0 0,
+      100% 0,
+      100% calc(100% - 9px),
+      calc(100% - 9px) 100%,
+      0 100%
+    );
   }
   .advance:hover:not(:disabled) {
-    filter: brightness(1.08);
+    filter: brightness(1.1);
   }
   .advance:disabled {
     opacity: 0.6;
     cursor: default;
+  }
+  .simkey {
+    font-size: 9px;
+    font-weight: 600;
+    opacity: 0.6;
+    letter-spacing: 0.04em;
+    padding-left: 2px;
   }
 
   .screen {
@@ -569,16 +671,93 @@
     overflow-y: auto;
   }
 
+  /* LIVE WIRE ticker */
+  .ticker {
+    height: 28px;
+    flex: none;
+    display: flex;
+    align-items: stretch;
+    background: #0a0d11;
+    border-top: 1px solid #1d242c;
+    user-select: none;
+    overflow: hidden;
+  }
+  .ticker-tag {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    background: #0d1117;
+    border-right: 1px solid #1d242c;
+  }
+  .ticker-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    animation: tsPulse 1.6s infinite;
+  }
+  .ticker-tag .mono {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: #8d97a3;
+  }
+  .ticker-track {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+  .ticker-scroll {
+    display: inline-flex;
+    white-space: nowrap;
+    animation: tsTicker 60s linear infinite;
+  }
+  .ticker-scroll .mono {
+    font-size: 10.5px;
+    color: #6f7a86;
+    padding-right: 64px;
+  }
+  .ticker-date {
+    flex: none;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    border-left: 1px solid #1d242c;
+  }
+  .ticker-date .mono {
+    font-size: 9.5px;
+    letter-spacing: 0.06em;
+    color: #4d5763;
+  }
+
+  /* scanline FX overlay */
+  .fxoverlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 45;
+    background-image: repeating-linear-gradient(
+      0deg,
+      rgba(160, 190, 220, 0.016) 0px,
+      rgba(160, 190, 220, 0.016) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: screen;
+  }
+
   .toast {
     position: absolute;
-    bottom: 20px;
+    bottom: 44px;
     left: 50%;
     transform: translateX(-50%);
     background: var(--raised);
     border: 1px solid #2f3742;
     color: var(--text);
     padding: 11px 18px;
-    border-radius: 10px;
+    border-radius: 0;
     font-size: 13px;
     font-weight: 500;
     display: flex;
