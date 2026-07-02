@@ -64,6 +64,9 @@ pub struct SquadPlayer {
     pub potential: Option<u8>,
     pub market_value: Option<i64>,
     pub attrs: Option<Attrs>,
+    /// Season appearances / goals so far (present once the player has featured).
+    pub apps: Option<u16>,
+    pub goals: Option<u16>,
 }
 
 fn row(world: &World, entity: Entity, today: sim_core::Date) -> SquadPlayer {
@@ -86,6 +89,8 @@ fn row(world: &World, entity: Entity, today: sim_core::Date) -> SquadPlayer {
         potential: rating.map(|r| r.potential),
         market_value: e.get::<MarketValue>().map(|v| v.0),
         attrs: e.get::<Footballer>().map(Attrs::from),
+        apps: e.get::<crate::tally::FootballTally>().map(|t| t.apps),
+        goals: e.get::<crate::tally::FootballTally>().map(|t| t.goals),
     }
 }
 

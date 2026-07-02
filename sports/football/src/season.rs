@@ -132,6 +132,11 @@ impl League for Season {
         for (k, res) in results.iter().enumerate() {
             let (h, a) = fixtures[k];
             record_result(&mut self.table, h, a, res.home_goals, res.away_goals);
+            // Attribute the result to players' season tallies (apps + goals), seeded off the
+            // same fixture coordinates so the stat lines are as reproducible as the scoreline.
+            let seed =
+                sim_core::derive_seed(self.world_seed, &[u64::from(self.season_id), index as u64, k as u64]);
+            crate::tally::credit_match(world, h, a, res.home_goals, res.away_goals, seed);
         }
     }
 }

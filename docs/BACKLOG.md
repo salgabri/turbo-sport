@@ -136,11 +136,17 @@ P0 there is no *game* to play between matches.
 - **Why:** the genre's connective tissue; ours is a placeholder. **Fit:** `sim-core::Inbox`
   resource (was scoped, deferred) populated deterministically off the clock; view fn.
 
-### 14. Season stats, player comparison & data hub  · status: **missing** · effort: **M**
-- **What:** per-player season tallies (apps, goals/assists, avg rating; PPG/RPG/APG; stage wins;
-  titles) surfaced on Profile/Squad, a **compare two players** view, and league leaders.
-- **Why:** the "data-dense" identity we're chasing; also the payoff of the match engine.
-  **Fit:** a `SeasonTally` component (previously scoped, deferred) updated post-match; view fns.
+### 14. Season stats, player comparison & data hub  · status: **partial (apps/goals done, football)** · effort: **M**
+- **Shipped (football):** `football::tally::FootballTally{apps,goals}` credited **deterministically
+  after every match the season plays** — the starting XI (11 highest-rated) get an appearance and
+  the scoreline is attributed to scorers (shooting-weighted, seeded off the fixture coordinates),
+  reset each new season. Surfaced on the Profile "This Season" panel (Apps / Goals / per-game) and
+  the Squad Contract column. Unit-tested (11 apps + N goals attributed, deterministic).
+- **Follow-ups:** assists + a per-match rating (feeds avg rating and training's minutes-based
+  growth), a **compare two players** view, league leaders / top scorers, and the same for the
+  other sports (PPG/RPG/APG, stage wins, titles).
+- **Why:** the "data-dense" identity we're chasing and the payoff of the match engine.
+  **Fit:** ECS component updated single-threaded in the season's play path; deterministic.
 
 ### 15. Individual-sport in-event tactics  · status: **missing** · effort: **L (per sport)**
 - **What:** cycling — team orders, leadouts, breakaway/GC roles, feed the stage playback;

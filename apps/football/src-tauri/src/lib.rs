@@ -113,7 +113,8 @@ fn start_season(state: State<AppState>) -> Result<(), String> {
     if teams.len() < 2 || teams.len() % 2 != 0 {
         return Err(format!("need an even number of clubs (have {})", teams.len()));
     }
-    // A pre-season of training: youngsters grow toward their potential, veterans decline.
+    // A new season: zero last year's stats, then a pre-season of training.
+    football::reset_tallies(&mut world);
     football::develop(&mut world);
     let today = world.resource::<SimClock>().date();
     let seed = world.get_resource::<SimSeed>().map_or(0, |s| s.0);

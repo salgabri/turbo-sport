@@ -219,7 +219,25 @@
               <div style="font-size:20px;font-weight:800;color:#616b77;line-height:1.1">—</div>
             </div>
           </div>
-          <div class="empty" style="padding:44px 16px">Per-match stats arrive with match tracking.</div>
+          {#if player.apps != null}
+            {@const gpg = player.apps ? ((player.goals ?? 0) / player.apps).toFixed(2) : "0.00"}
+            <div style="display:flex;padding:14px 8px">
+              <div style="flex:1;text-align:center">
+                <div style="font-size:22px;font-weight:800;letter-spacing:-.01em">{player.apps}</div>
+                <div style="font-size:10.5px;color:#7a828d;font-family:var(--font-mono);margin-top:2px;text-transform:uppercase;letter-spacing:.04em">Apps</div>
+              </div>
+              <div style="flex:1;text-align:center">
+                <div style="font-size:22px;font-weight:800;letter-spacing:-.01em;color:var(--accent)">{player.goals ?? 0}</div>
+                <div style="font-size:10.5px;color:#7a828d;font-family:var(--font-mono);margin-top:2px;text-transform:uppercase;letter-spacing:.04em">Goals</div>
+              </div>
+              <div style="flex:1;text-align:center">
+                <div style="font-size:22px;font-weight:800;letter-spacing:-.01em">{gpg}</div>
+                <div style="font-size:10.5px;color:#7a828d;font-family:var(--font-mono);margin-top:2px;text-transform:uppercase;letter-spacing:.04em">Per game</div>
+              </div>
+            </div>
+          {:else}
+            <div class="empty" style="padding:44px 16px">No appearances yet this season.</div>
+          {/if}
         </section>
 
         <!-- Scout Report -->
