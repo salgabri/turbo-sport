@@ -60,6 +60,20 @@ export type ScorerRow = {
   apps: number;
 };
 
+export type FixtureInfo = {
+  comp: string;
+  date: string;
+  is_home: boolean;
+  home_id: number;
+  away_id: number;
+  home_name: string;
+  away_name: string;
+  home_crest: string;
+  away_crest: string;
+  home_form: string[];
+  away_form: string[];
+};
+
 export type StandingRow = {
   team_id: number;
   played: number;

@@ -51,6 +51,12 @@ fn next_match(team_id: u32, state: State<AppState>) -> Option<football::MatchPla
     football::next_match_playback(&mut state.world.lock().unwrap(), team_id)
 }
 
+/// Summary of the managed club's next fixture for the Home screen.
+#[tauri::command]
+fn next_fixture(team_id: u32, state: State<AppState>) -> Option<football::FixtureInfo> {
+    football::next_fixture_info(&mut state.world.lock().unwrap(), team_id)
+}
+
 /// Search the whole player pool, best-overall first, capped. The "Excel over a huge world"
 /// surface — filters over every footballer, not just free agents.
 #[allow(clippy::too_many_arguments)]
@@ -261,6 +267,7 @@ pub fn run() {
             team_squad,
             market,
             next_match,
+            next_fixture,
             search,
             current_date,
             season_active,

@@ -312,6 +312,58 @@ pub fn next_match_playback(world: &mut World, team_id: u32) -> Option<MatchPlayb
 /// Find `team_id`'s next fixture as `(home, away, seed)`. In-season the seed matches the
 /// season's per-fixture stream (see [`sim_core::seeded_parallel_map`]); otherwise it is a
 /// stable friendly seed.
+/// Summary of a team's next fixture for the Home screen.
+#[derive(Serialize, Clone, Debug)]
+pub struct FixtureInfo {
+    pub comp: String,
+    pub date: String,
+    pub is_home: bool,
+    pub home_id: u32,
+    pub away_id: u32,
+    pub home_name: String,
+    pub away_name: String,
+    pub home_crest: String,
+    pub away_crest: String,
+    pub home_form: Vec<String>,
+    pub away_form: Vec<String>,
+}
+
+/// The managed team's next fixture with the fields the Home "Next Match" card shows.
+pub fn next_fixture_info(world: &mut World, team_id: u32) -> Option<FixtureInfo> {
+    let (home, away, coord) = next_fixture(world, team_id)?;
+    let (comp, date, home_form, away_form) = match world.get_resource::<crate::season::Season>() {
+        Some(s) => {
+            let date = if (coord as usize) < s.schedule.len() {
+                s.schedule.matchday(coord as usize).date.to_string()
+            } else {
+                "TBD".to_string()
+            };
+            (
+                format!("League · Matchday {}", coord + 1),
+                date,
+                s.form_of(home).into_iter().map(String::from).collect(),
+                s.form_of(away).into_iter().map(String::from).collect(),
+            )
+        }
+        None => ("Friendly".to_string(), "Pre-season".to_string(), Vec::new(), Vec::new()),
+    };
+    let home_name = club_name(world, home);
+    let away_name = club_name(world, away);
+    Some(FixtureInfo {
+        comp,
+        date,
+        is_home: home == team_id,
+        home_id: home,
+        away_id: away,
+        home_crest: crest_of(&home_name),
+        away_crest: crest_of(&away_name),
+        home_name,
+        away_name,
+        home_form,
+        away_form,
+    })
+}
+
 fn next_fixture(world: &mut World, team_id: u32) -> Option<(u32, u32, u64)> {
     if let Some(season) = world.get_resource::<crate::season::Season>() {
         let sched = &season.schedule;

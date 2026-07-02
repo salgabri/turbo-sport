@@ -2,7 +2,15 @@
   import Icon from "../design/Icon.svelte";
   import { money, fitColor, moraleWord } from "../design/color";
   import type { SportTheme } from "../design/theme";
-  import type { ClubView, PlayerView, StandingRow, Screen, BoardView } from "../design/dto";
+  import { formChip } from "../design/color";
+  import type {
+    ClubView,
+    PlayerView,
+    StandingRow,
+    Screen,
+    BoardView,
+    FixtureInfo,
+  } from "../design/dto";
 
   let {
     theme,
@@ -13,6 +21,7 @@
     teamName,
     seasonActive,
     board = null,
+    fixture = null,
     onNav,
   }: {
     theme: SportTheme;
@@ -23,6 +32,7 @@
     teamName: (id: number) => string;
     seasonActive: boolean;
     board?: BoardView | null;
+    fixture?: FixtureInfo | null;
     onNav: (s: Screen) => void;
   } = $props();
 
@@ -245,12 +255,41 @@
       <!-- next fixture -->
       <section class="card">
         <div class="card-head">
-          <span class="fx-comp">Fixtures</span>
+          <span class="fx-comp">{fixture ? fixture.comp : "Fixtures"}</span>
           <span class="next-tag">NEXT</span>
         </div>
-        <div class="empty">Fixtures arrive with the schedule view.</div>
+        {#if fixture}
+          <div class="fx-body">
+            <div class="fx-side">
+              <div class="fx-crest home">{fixture.home_crest}</div>
+              <div class="fx-name">{fixture.home_name}</div>
+              <div class="fx-form">
+                {#each fixture.home_form as c}
+                  {@const ch = formChip(c)}
+                  <span class="fx-chip" style="background:{ch.bg};color:{ch.fg}">{c}</span>
+                {/each}
+              </div>
+            </div>
+            <div class="fx-mid">
+              <span class="fx-vs">{fixture.is_home ? "vs" : "@"}</span>
+              <span class="fx-date">{fixture.date}</span>
+            </div>
+            <div class="fx-side">
+              <div class="fx-crest">{fixture.away_crest}</div>
+              <div class="fx-name">{fixture.away_name}</div>
+              <div class="fx-form">
+                {#each fixture.away_form as c}
+                  {@const ch = formChip(c)}
+                  <span class="fx-chip" style="background:{ch.bg};color:{ch.fg}">{c}</span>
+                {/each}
+              </div>
+            </div>
+          </div>
+        {:else}
+          <div class="empty">No fixture scheduled — start a season.</div>
+        {/if}
         <div class="fx-foot">
-          <button class="ghost-btn" onclick={() => onNav("match")}>Go to Match</button>
+          <button class="ghost-btn" onclick={() => onNav("match")}>Prepare for Match</button>
         </div>
       </section>
 
@@ -525,6 +564,84 @@
   }
 
   /* next fixture */
+  .fx-body {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 16px 15px;
+  }
+  .fx-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+  .fx-crest {
+    width: 44px;
+    height: 44px;
+    border-radius: 0;
+    background: var(--raised);
+    border: 1px solid #2a323c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text-2);
+  }
+  .fx-crest.home {
+    background: var(--accent-soft);
+    border-color: var(--accent-line);
+    color: var(--accent);
+  }
+  .fx-name {
+    font-size: 12.5px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .fx-form {
+    display: flex;
+    gap: 3px;
+  }
+  .fx-chip {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 700;
+  }
+  .fx-mid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding-top: 10px;
+    flex: none;
+  }
+  .fx-vs {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--faint);
+    letter-spacing: 0.05em;
+  }
+  .fx-date {
+    font-size: 11px;
+    color: var(--muted-3);
+    font-family: var(--font-mono);
+    text-align: center;
+    white-space: nowrap;
+  }
   .fx-comp {
     font-size: 11px;
     font-weight: 600;

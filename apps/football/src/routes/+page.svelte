@@ -6,7 +6,7 @@
   import "$lib/design/tokens.css";
   import AppShell from "$lib/design/AppShell.svelte";
   import { FOOTBALL } from "$lib/design/theme";
-  import type { ClubView, PlayerView, StandingRow, Screen, MatchPlayback, BoardView, SearchArgs, ScorerRow } from "$lib/design/dto";
+  import type { ClubView, PlayerView, StandingRow, Screen, MatchPlayback, BoardView, SearchArgs, ScorerRow, FixtureInfo } from "$lib/design/dto";
 
   import Home from "$lib/screens/Home.svelte";
   import Squad from "$lib/screens/Squad.svelte";
@@ -25,6 +25,7 @@
   let market = $state<PlayerView[]>([]);
   let standings = $state<StandingRow[]>([]);
   let scorers = $state<ScorerRow[]>([]);
+  let fixture = $state<FixtureInfo | null>(null);
   let date = $state("");
   let seasonActive = $state(false);
   let busy = $state(false);
@@ -63,7 +64,10 @@
     seasonActive = await invoke<boolean>("season_active");
     clubs = await invoke<ClubView[]>("clubs");
     if (myClubId === null) myClubId = clubs[0]?.team_id ?? null;
-    if (myClubId !== null) squad = await invoke<PlayerView[]>("team_squad", { teamId: myClubId });
+    if (myClubId !== null) {
+      squad = await invoke<PlayerView[]>("team_squad", { teamId: myClubId });
+      fixture = await invoke<FixtureInfo | null>("next_fixture", { teamId: myClubId });
+    }
     market = await invoke<PlayerView[]>("market", { limit: 50 });
     if (seasonActive) {
       standings = await invoke<StandingRow[]>("standings");
@@ -214,7 +218,7 @@
   {/snippet}
 
   {#if screen === "home"}
-    <Home {theme} club={myClub} {squad} {standings} myTeamId={myClubId} {teamName} {seasonActive} board={boardView} {onNav} />
+    <Home {theme} club={myClub} {squad} {standings} myTeamId={myClubId} {teamName} {seasonActive} board={boardView} {fixture} {onNav} />
   {:else if screen === "squad"}
     <Squad {theme} {squad} count={squad.length} selectedName={selectedPlayer?.name ?? "—"} {onSelectPlayer} onTrain={trainSquad} {busy} />
   {:else if screen === "profile"}

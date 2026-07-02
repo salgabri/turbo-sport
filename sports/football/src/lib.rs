@@ -23,7 +23,9 @@ pub mod view;
 
 pub use attributes::Footballer;
 pub use injuries::{roll_match_injuries, severity};
-pub use playback::{next_match_playback, simulate_match_playback, MatchPlayback};
+pub use playback::{
+    next_fixture_info, next_match_playback, simulate_match_playback, FixtureInfo, MatchPlayback,
+};
 pub use tally::{credit_match, reset_tallies, FootballTally};
 pub use train::{develop, set_team_focus, FOCUS_MENTAL, FOCUS_PHYSICAL, FOCUS_TECHNICAL};
 pub use view::{
