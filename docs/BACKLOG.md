@@ -152,14 +152,28 @@ P0 there is no *game* to play between matches.
 
 ## P2 — proof, polish & differentiation
 
-### 17. Scale & speed proof (THE thesis)  · status: **missing** · effort: **M/L** · *strategically P0*
+### 17. Scale & speed proof (THE thesis)  · sim half: **PROVEN** · UI half: **missing** · *strategically P0*
 - **What:** (a) generate & simulate a **100k+ entity** world and benchmark season-advance speed
   vs the genre's known slowness; (b) a **virtualized** data grid so squad/search/finance tables
-  render 100k rows over the view DTOs at frame budget. **Why:** this is the entire product
-  premise and it is currently **unproven** — everything above is more valuable once this holds.
-  **Fit:** virtualization is a UI concern over the existing bounded-DTO contract; the sim is
-  already ECS+rayon+deterministic. Do a spike early even though it's "P2 polish" in feature
-  terms — it de-risks the whole roadmap.
+  render 100k rows over the view DTOs at frame budget.
+- **(a) DONE — sim half validated** by `cargo run -p football --example scale --release`
+  (100k players / 4000 clubs / 200 divisions, 16 cores):
+  - build DB **32ms**, load into ECS **182ms** (104k entities), gather all lineups **6.8ms**
+  - **one parallel matchday (2000 matches): 2.1ms** (~0.95M matches/s)
+  - **a full 100k-player season (38,000 matches): 22ms** (~1.7M matches/s)
+  - daily lifecycle tick over 104k entities: **1.3ms** (~78M entities/s)
+  - determinism holds at scale (matchday re-run byte-identical).
+  And it scales: at **1,000,000 players** (1.04M entities) a full season is **168ms** (380,000
+  matches, ~3.5M matches/s peak), the daily tick **4ms**, load **1.56s** — throughput actually
+  *rises* with scale as the cores saturate.
+  For reference the genre benchmark (FM) processes a season in *minutes*; we do a 100k world in
+  tens of milliseconds and a 1M world in a fraction of a second. The core premise holds — this
+  de-risks the whole roadmap.
+- **(b) TODO — UI half:** a virtualized grid so the squad/search/finance tables render 100k
+  rows over the (already bounded) view DTOs at frame budget. Pure UI work; the DTO contract
+  already forbids shipping raw 100k rows, so this is windowing + a virtual scroller.
+- **Fit:** the sim is ECS + rayon + deterministic (proven above); virtualization is a UI concern
+  over the existing read layer.
 
 ### 18. Editor & data content  · status: **partial** · effort: **M**
 - **What:** grow the standalone DB editor into a full pre-game editor (edit any entity, create
