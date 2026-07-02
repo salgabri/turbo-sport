@@ -152,12 +152,12 @@
     gap: 3px;
     background: #0f1319;
     border: 1px solid #232a33;
-    border-radius: 9px;
+    border-radius: 0;
     padding: 3px;
   }
   .pill {
     padding: 4px 10px;
-    border-radius: 7px;
+    border-radius: 0;
     font-size: 11px;
     font-weight: 600;
     color: #8b95a1;
@@ -173,7 +173,7 @@
     width: 52px;
     background: #0f1319;
     border: 1px solid #232a33;
-    border-radius: 7px;
+    border-radius: 0;
     color: #d4dae1;
     font-family: var(--font-mono);
     font-size: 12px;
@@ -202,7 +202,7 @@
     background: var(--accent);
     color: #08120c;
     border: none;
-    border-radius: 9px;
+    border-radius: 0;
     font-size: 13px;
     font-weight: 700;
     font-family: inherit;
