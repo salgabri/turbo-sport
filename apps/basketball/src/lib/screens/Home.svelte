@@ -367,14 +367,25 @@
     gap: 12px;
   }
   .kpi {
+    position: relative;
     background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 13px;
+    border-radius: 0;
     padding: 13px 14px;
     display: flex;
     flex-direction: column;
     gap: 7px;
     min-height: 92px;
+  }
+  .kpi::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    width: 9px;
+    height: 9px;
+    border-top: 2px solid var(--accent);
+    border-left: 2px solid var(--accent);
   }
   .kpi-label {
     font-size: 10px;
@@ -386,20 +397,20 @@
   }
   .kpi-value {
     font-size: 23px;
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1;
   }
   .kpi-bar {
     height: 4px;
     background: var(--line);
-    border-radius: 3px;
+    border-radius: 0;
     overflow: hidden;
     margin-top: -1px;
   }
   .kpi-bar-fill {
     height: 100%;
-    border-radius: 3px;
+    border-radius: 0;
   }
   .kpi-sub {
     font-size: 11.5px;
@@ -419,7 +430,7 @@
     min-width: 0;
     background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: 0;
     overflow: hidden;
   }
   .inbox-head {
@@ -445,7 +456,7 @@
     background: var(--accent-soft);
     color: var(--accent);
     padding: 2px 7px;
-    border-radius: 20px;
+    border-radius: 0;
   }
   .inbox-tabs {
     display: flex;
@@ -457,7 +468,7 @@
     font-weight: 500;
     color: var(--muted-2);
     padding: 4px 10px;
-    border-radius: 7px;
+    border-radius: 0;
     cursor: pointer;
   }
   .tab:hover {
@@ -474,7 +485,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 7px;
+    border-radius: 0;
     color: var(--muted-2);
     cursor: pointer;
   }
@@ -493,7 +504,7 @@
   .card {
     background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: 0;
     overflow: hidden;
   }
   .card-head {
@@ -522,7 +533,7 @@
     color: var(--accent);
     background: var(--accent-soft);
     padding: 3px 7px;
-    border-radius: 5px;
+    border-radius: 0;
   }
   .fx-foot {
     padding: 0 15px 15px;
@@ -533,7 +544,7 @@
     padding: 9px;
     border: 1px solid var(--accent-line);
     color: var(--accent);
-    border-radius: 9px;
+    border-radius: 0;
     font-size: 12.5px;
     font-weight: 600;
     cursor: pointer;
@@ -577,7 +588,7 @@
     display: flex;
     align-items: center;
     padding: 6px 8px;
-    border-radius: 7px;
+    border-radius: 0;
   }
   .snap-row.mine {
     background: var(--accent-soft);
@@ -641,7 +652,7 @@
     width: 28px;
     height: 28px;
     flex: none;
-    border-radius: 8px;
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -671,7 +682,7 @@
     color: var(--down);
     background: #331e21;
     padding: 2px 7px;
-    border-radius: 5px;
+    border-radius: 0;
     flex: none;
   }
   .divider {
@@ -695,12 +706,12 @@
   .gauge-track {
     height: 6px;
     background: var(--line);
-    border-radius: 4px;
+    border-radius: 0;
     overflow: hidden;
   }
   .gauge-fill {
     height: 100%;
-    border-radius: 4px;
+    border-radius: 0;
   }
 
   /* empty state (consistent) */

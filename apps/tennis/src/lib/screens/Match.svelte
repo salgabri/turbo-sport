@@ -267,7 +267,7 @@
   }
   .hero-title {
     font-size: 22px;
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: -0.02em;
   }
   .hero-sub {
@@ -283,7 +283,7 @@
     gap: 8px;
     font-family: inherit;
     cursor: pointer;
-    border-radius: 9px;
+    border-radius: 0;
     font-weight: 700;
     font-size: 13px;
   }
@@ -326,7 +326,7 @@
     gap: 24px;
     background: var(--panel-2);
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: 0;
     padding: 13px 22px;
   }
   .team {
@@ -358,7 +358,7 @@
     width: 36px;
     height: 36px;
     flex: none;
-    border-radius: 9px;
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -385,7 +385,7 @@
     align-items: center;
     gap: 12px;
     font-size: 32px;
-    font-weight: 800;
+    font-weight: 700;
     line-height: 1;
   }
   .score-nums .won {
@@ -423,7 +423,7 @@
     padding: 11px 16px;
     background: var(--accent-soft);
     border: 1px solid var(--accent-line);
-    border-radius: 12px;
+    border-radius: 0;
     color: var(--accent);
     font-weight: 700;
     font-size: 14px;
@@ -454,7 +454,7 @@
   .panel {
     background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 12px;
+    border-radius: 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -482,7 +482,7 @@
     min-width: 110px;
     background: var(--raised);
     border: 1px solid #232a33;
-    border-radius: 11px;
+    border-radius: 0;
     padding: 14px 10px;
     display: flex;
     flex-direction: column;
@@ -512,7 +512,7 @@
     align-items: center;
     gap: 10px;
     font-size: 26px;
-    font-weight: 800;
+    font-weight: 700;
     line-height: 1;
   }
   .set-games .hi {
@@ -577,7 +577,7 @@
   .fbar {
     width: 3px;
     flex: none;
-    border-radius: 2px;
+    border-radius: 0;
   }
   .fbody {
     flex: 1;
@@ -601,7 +601,7 @@
     gap: 12px;
     background: var(--panel-2);
     border: 1px solid var(--line);
-    border-radius: 12px;
+    border-radius: 0;
     padding: 9px 14px;
   }
   .speeds {
@@ -610,12 +610,12 @@
     gap: 3px;
     background: #0f1319;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: 0;
     padding: 3px;
   }
   .sp {
     padding: 5px 11px;
-    border-radius: 6px;
+    border-radius: 0;
     font-size: 12px;
     font-weight: 600;
     font-family: var(--font-mono);

@@ -156,7 +156,7 @@
   .card {
     background: #14181e;
     border: 1px solid #232a33;
-    border-radius: 14px;
+    border-radius: 0;
     overflow: hidden;
   }
 
@@ -192,7 +192,7 @@
   .swatch {
     width: 9px;
     height: 9px;
-    border-radius: 2px;
+    border-radius: 0;
     flex: none;
   }
   .legend-label {

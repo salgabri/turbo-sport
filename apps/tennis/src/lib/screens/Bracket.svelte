@@ -110,7 +110,7 @@
     gap: 24px;
     background: #12161c;
     border: 1px solid #232a33;
-    border-radius: 14px;
+    border-radius: 0;
     padding: 15px 22px;
   }
   .scoreboard.won {
@@ -126,7 +126,7 @@
     width: 44px;
     height: 44px;
     flex: none;
-    border-radius: 11px;
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -149,7 +149,7 @@
   }
   .champ-name {
     font-size: 22px;
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--text);
   }
@@ -179,7 +179,7 @@
     font-weight: 700;
     font-size: 13.5px;
     border: none;
-    border-radius: 9px;
+    border-radius: 0;
     cursor: pointer;
     box-shadow: 0 0 20px var(--accent-soft);
     font-family: inherit;
@@ -216,7 +216,7 @@
     flex: 1;
     background: #14181e;
     border: 1px solid #232a33;
-    border-radius: 12px;
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -267,7 +267,7 @@
     background: #171c22;
     border: 1px solid #232a33;
     padding: 1px 6px;
-    border-radius: 5px;
+    border-radius: 0;
   }
   .round-stack {
     display: flex;
@@ -277,7 +277,7 @@
   .mcard {
     background: #14181e;
     border: 1px solid #232a33;
-    border-radius: 10px;
+    border-radius: 0;
     padding: 9px 11px;
     position: relative;
   }
@@ -310,6 +310,6 @@
     background: #0f1319;
     border: 1px solid #232a33;
     padding: 1px 7px;
-    border-radius: 5px;
+    border-radius: 0;
   }
 </style>

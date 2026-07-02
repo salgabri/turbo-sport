@@ -321,12 +321,12 @@
     gap: 4px;
     background: #0f1319;
     border: 1px solid #232a33;
-    border-radius: 9px;
+    border-radius: 0;
     padding: 3px;
   }
   .seg {
     padding: 5px 12px;
-    border-radius: 7px;
+    border-radius: 0;
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
@@ -454,12 +454,12 @@
   }
   .capt {
     font-size: 9px;
-    font-weight: 800;
+    font-weight: 700;
     color: #0a0c0f;
     background: var(--accent);
     width: 15px;
     height: 15px;
-    border-radius: 4px;
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -476,7 +476,7 @@
   .susp {
     width: 11px;
     height: 14px;
-    border-radius: 2px;
+    border-radius: 0;
     background: #ef6b6b;
     display: inline-block;
     flex: none;

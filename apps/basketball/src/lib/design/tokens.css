@@ -5,11 +5,11 @@
 /* Fonts: Archivo (display/sans) + IBM Plex Mono (numbers/labels).
    NOTE: pulled from Google Fonts for now; self-host woff2 in a later polish
    pass so core play has no network dependency (see CLAUDE.md target). */
-@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
 
 :root {
   /* Surfaces */
-  --bg: #0b0d10;
+  --bg: #07090c;
   --bg-titlebar: #0a0c0f;
   --bg-sidebar: #0c0e12;
   --bg-main: #0f1216;
@@ -47,7 +47,7 @@
   --danger: #ef5a5a;
 
   /* Fonts */
-  --font-sans: "Archivo", system-ui, -apple-system, sans-serif;
+  --font-sans: "Rajdhani", system-ui, -apple-system, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
 
   /* Accent — default (football green); each app overrides these four. */
@@ -82,7 +82,7 @@ body {
 }
 ::-webkit-scrollbar-thumb {
   background: #2a313b;
-  border-radius: 6px;
+  border-radius: 0;
   border: 3px solid #0f1216;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -106,6 +106,24 @@ body {
   to {
     opacity: 1;
     transform: none;
+  }
+}
+@keyframes tsBlink {
+  0%,
+  55% {
+    opacity: 1;
+  }
+  56%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes tsTicker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
   }
 }
 
