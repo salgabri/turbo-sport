@@ -25,7 +25,8 @@ pub use playback::{next_match_playback, simulate_match_playback, MatchPlayback};
 pub use tally::{credit_match, reset_tallies, FootballTally};
 pub use train::{develop, set_team_focus, FOCUS_MENTAL, FOCUS_PHYSICAL, FOCUS_TECHNICAL};
 pub use view::{
-    free_agents as free_agents_detailed, team_squad as team_squad_detailed, Attrs, SquadPlayer,
+    free_agents as free_agents_detailed, search, team_squad as team_squad_detailed, Attrs,
+    SearchFilter, SquadPlayer,
 };
 pub use career::{generate_prospects, regen_youth};
 pub use database::{load_world, sample, Database, FootballAbility, PlayerRecord};
