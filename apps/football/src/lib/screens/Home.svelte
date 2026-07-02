@@ -2,7 +2,7 @@
   import Icon from "../design/Icon.svelte";
   import { money, fitColor, moraleWord } from "../design/color";
   import type { SportTheme } from "../design/theme";
-  import type { ClubView, PlayerView, StandingRow, Screen } from "../design/dto";
+  import type { ClubView, PlayerView, StandingRow, Screen, BoardView } from "../design/dto";
 
   let {
     theme,
@@ -12,6 +12,7 @@
     myTeamId,
     teamName,
     seasonActive,
+    board = null,
     onNav,
   }: {
     theme: SportTheme;
@@ -21,6 +22,7 @@
     myTeamId: number | null;
     teamName: (id: number) => string;
     seasonActive: boolean;
+    board?: BoardView | null;
     onNav: (s: Screen) => void;
   } = $props();
 
@@ -107,10 +109,14 @@
         subColor: "#5ec98a",
       },
       {
-        label: "Season",
-        value: seasonActive ? "Running" : "Off-season",
-        sub: seasonActive ? "matches scheduled" : "no fixtures",
-        subColor: seasonActive ? "#5ec98a" : "#828b96",
+        label: "Objective",
+        value: board ? `Top ${board.target_pos}` : seasonActive ? "Running" : "Off-season",
+        sub: board
+          ? board.confidence + (board.current_pos ? ` · ${ordinal(board.current_pos)}` : "")
+          : seasonActive
+            ? "matches scheduled"
+            : "no fixtures",
+        subColor: board ? (board.on_track ? "#5ec98a" : "#ef6b6b") : "#828b96",
       },
     ];
   });

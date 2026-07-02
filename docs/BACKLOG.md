@@ -68,13 +68,18 @@ P0 there is no *game* to play between matches.
   the clock — deterministic, no RNG needed). New optional save fields (`#[serde(default)]`).
   Depends on scouting/value being trustworthy.
 
-### 5. Board, objectives, expectations & manager career  · status: **missing** · effort: **M/L**
-- **What:** a board that sets season objectives (league finish, cup run, budget discipline),
-  tracks confidence, and can sack you; a manager profile with reputation that gates job offers;
-  hiring/firing across clubs.
+### 5. Board, objectives, expectations & manager career  · status: **v1 DONE (objective)** · effort: **M/L**
+- **Shipped:** a `board(team_id)` command sets the season objective from the club's **squad
+  strength rank** among the league (a stronger squad is expected to finish higher) and judges you
+  against the live table into a confidence word (Delighted / Pleased / Concerned / Under pressure /
+  Pre-season) + on-track flag. Surfaced on the Home "Objective" KPI (target + current position,
+  green/red by on-track). Deterministic (reads ClubView.avg_overall + standings).
+- **Follow-ups:** consequences (board confidence trend, the sack), budget/cup objectives, a
+  manager profile + reputation gating job offers, hiring/firing across clubs, and posting board
+  messages to the inbox (#13).
 - **Why:** gives the game *stakes and purpose* — without objectives, advancing time is aimless.
-- **Fit:** `sim-core` resources (Board expectation, ManagerReputation) + deterministic
-  evaluation each matchday/season. UI-agnostic (surfaced via view DTOs). Feeds the inbox.
+- **Fit:** app-level for v1 over the existing view DTOs; a persistent `Board`/`ManagerReputation`
+  in `sim-core` comes with the consequences layer.
 
 ### 6. Multiple & knockout competitions + fixture calendar  · status: **partial** · effort: **L**
 - **What:** domestic **cups** (single-elim/two-leg) and a **continental** competition running

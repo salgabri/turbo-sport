@@ -44,6 +44,14 @@ export type PlayerView = {
   signed?: string | null;
 };
 
+export type BoardView = {
+  objective: string;
+  target_pos: number;
+  current_pos: number | null;
+  confidence: string;
+  on_track: boolean;
+};
+
 export type StandingRow = {
   team_id: number;
   played: number;

@@ -98,6 +98,60 @@ fn standings(state: State<AppState>) -> Vec<StandingRow> {
     }
 }
 
+/// The board's expectation of the managed club and how it's tracking.
+#[derive(Serialize)]
+struct BoardView {
+    /// Human-readable objective, e.g. "Finish in the top 4".
+    objective: String,
+    /// Target finishing position the board expects.
+    target_pos: u32,
+    /// Current league position, if a season is running.
+    current_pos: Option<u32>,
+    /// Board mood word.
+    confidence: String,
+    on_track: bool,
+}
+
+/// The board sets its expectation from the club's squad strength relative to the league (a
+/// stronger squad is expected to finish higher) and judges you against the current table.
+#[tauri::command]
+fn board(team_id: u32, state: State<AppState>) -> BoardView {
+    let mut world = state.world.lock().unwrap();
+    let clubs = club_views(&mut world);
+    let n = clubs.len().max(1);
+
+    // Rank clubs by average squad overall (strongest first); the board expects you to finish at
+    // least as high as your squad's strength rank.
+    let mut ranked: Vec<(u32, u8)> =
+        clubs.iter().filter_map(|c| c.avg_overall.map(|o| (c.team_id, o))).collect();
+    ranked.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
+    let strength_rank = ranked.iter().position(|(t, _)| *t == team_id).map_or(n, |i| i + 1);
+    let target_pos = strength_rank.clamp(1, n) as u32;
+
+    // Current league position from the standings, if a season is running.
+    let current_pos = world.get_resource::<Season>().and_then(|s| {
+        s.standings().iter().position(|(t, _)| *t == team_id).map(|i| (i + 1) as u32)
+    });
+
+    let on_track = current_pos.map_or(true, |c| c <= target_pos);
+    let confidence = match current_pos {
+        None => "Pre-season",
+        Some(c) if c + 2 <= target_pos => "Delighted",
+        Some(c) if c <= target_pos => "Pleased",
+        Some(c) if c <= target_pos + 2 => "Concerned",
+        Some(_) => "Under pressure",
+    }
+    .to_string();
+
+    BoardView {
+        objective: format!("Finish in the top {target_pos}"),
+        target_pos,
+        current_pos,
+        confidence,
+        on_track,
+    }
+}
+
 // ---- mutations --------------------------------------------------------------
 
 /// Start a single league among all clubs in the world, kicking off on the current date.
@@ -185,6 +239,7 @@ pub fn run() {
             current_date,
             season_active,
             standings,
+            board,
             start_season,
             advance,
             transfer_window,

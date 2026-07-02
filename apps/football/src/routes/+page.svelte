@@ -6,7 +6,7 @@
   import "$lib/design/tokens.css";
   import AppShell from "$lib/design/AppShell.svelte";
   import { FOOTBALL } from "$lib/design/theme";
-  import type { ClubView, PlayerView, StandingRow, Screen, MatchPlayback } from "$lib/design/dto";
+  import type { ClubView, PlayerView, StandingRow, Screen, MatchPlayback, BoardView } from "$lib/design/dto";
 
   import Home from "$lib/screens/Home.svelte";
   import Squad from "$lib/screens/Squad.svelte";
@@ -32,6 +32,7 @@
   let selectedPlayer = $state<PlayerView | null>(null);
   let matchPlayback = $state<MatchPlayback | null>(null);
   let matchLoading = $state(false);
+  let boardView = $state<BoardView | null>(null);
 
   const myClub = $derived(clubs.find((c) => c.team_id === myClubId) ?? null);
   const teamName = (id: number): string => clubs.find((c) => c.team_id === id)?.name ?? `Team ${id}`;
@@ -61,6 +62,7 @@
     market = await invoke<PlayerView[]>("market", { limit: 50 });
     if (seasonActive) standings = await invoke<StandingRow[]>("standings");
     else standings = [];
+    if (myClubId !== null) boardView = await invoke<BoardView>("board", { teamId: myClubId });
   }
 
   async function withBusy(label: string, fn: () => Promise<void>) {
@@ -184,7 +186,7 @@
   {/snippet}
 
   {#if screen === "home"}
-    <Home {theme} club={myClub} {squad} {standings} myTeamId={myClubId} {teamName} {seasonActive} {onNav} />
+    <Home {theme} club={myClub} {squad} {standings} myTeamId={myClubId} {teamName} {seasonActive} board={boardView} {onNav} />
   {:else if screen === "squad"}
     <Squad {theme} {squad} count={squad.length} selectedName={selectedPlayer?.name ?? "—"} {onSelectPlayer} onTrain={trainSquad} {busy} />
   {:else if screen === "profile"}
